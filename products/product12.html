@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details - Dummy Shopping Website</title>
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <h1>Dummy Shopping Website</h1>
+    <nav>
+      <ul>
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="#">Categories</a></li>
+        <li><a href="#">About</a></li>
+      </ul>
+    </nav>
+    <!-- Shopping Cart Button -->
+    <button id="cart-button" class="cart-button">Cart (0)</button>
+  </header>
+
+  <!-- Breadcrumb Navigation -->
+  <section class="breadcrumb">
+    <p><a href="../index.html">Home</a> > <a href="#">Category 1</a> > Product 12</p>
+  </section>
+
+  <!-- Product Details -->
+  <section class="product-details">
+    <div class="product-image">
+      <img src="../images/product12.jpg" alt="Product 12" class="full-size-image">
+    </div>
+    <div class="product-info">
+      <h2>Product 12</h2>
+      <p class="price">$129.99</p>
+      <p class="description">
+        Eau De Parfume, Black Sakura, Unveil your signature scent with timeless elegance in every drop
+      </p>
+      <button class="add-to-cart">Add to Cart</button>
+    </div>
+  </section>
+
+  <!-- Shopping Cart Hover -->
+  <div id="shopping-cart" class="shopping-cart">
+    <h3>Shopping Cart</h3>
+    <ul>
+      <li>Product 1 - <input type="number" value="0" min="0"> x $19.99</li>
+      <li>Product 2 - <input type="number" value="0" min="0"> x $29.99</li>
+      <li>Product 3 - <input type="number" value="0" min="0"> x $39.99</li>
+      <li>Product 4 - <input type="number" value="0" min="0"> x $49.99</li>
+      <li>Product 5 - <input type="number" value="0" min="0"> x $59.99</li>
+      <li>Product 6 - <input type="number" value="0" min="0"> x $69.99</li>
+      <li>Product 7 - <input type="number" value="0" min="0"> x $79.99</li>
+      <li>Product 8 - <input type="number" value="0" min="0"> x $89.99</li>
+      <li>Product 9 - <input type="number" value="0" min="0"> x $99.99</li>
+      <li>Product 10 - <input type="number" value="0" min="0"> x $109.99</li>
+      <li>Product 11 - <input type="number" value="0" min="0"> x $119.99</li>
+      <li>Product 12 - <input type="number" value="0" min="0"> x $129.99</li>
+    </ul>
+    <button class="checkout">Checkout</button>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Dummy Shopping Website</p>
+  </footer>
+
+  <!-- Link to External JavaScript File -->
+  <script src="../scripts/cart.js"></script>
+</body>
+</html>

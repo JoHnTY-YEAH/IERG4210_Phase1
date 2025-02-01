@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dummy Shopping Website</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <h1>Dummy Shopping Website</h1>
+    <nav>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Categories</a></li>
+        <li><a href="#">About</a></li>
+      </ul>
+    </nav>
+    <!-- Shopping Cart Button -->
+    <button id="cart-button" class="cart-button">Cart (0)</button>
+  </header>
+
+  <!-- Breadcrumb Navigation -->
+  <section class="breadcrumb">
+    <p><a href="#">Home</a> > <a href="#">Category 1</a></p>
+  </section>
+
+  <!-- Product List -->
+  <section class="product-list">
+    <div class="product">
+      <a href="products/product1.html">
+        <img src="images/product1.jpg" alt="Product 1" class="thumbnail">
+        <h3>Product 1</h3>
+      </a>
+      <p>$19.99</p>
+      <button class="add-to-cart">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product2.html">
+        <img src="images/product2.jpg" alt="Product 2" class="thumbnail">
+        <h3>Product 2</h3>
+      </a>
+      <p>$29.99</p>
+      <button class="add-to-cart">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product3.html">
+        <img src="images/product3.jpg" alt="Product 3" class="thumbnail">
+        <h3>Product 3</h3>
+      </a>
+      <p>$39.99</p>
+      <button class="add-to-cart">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product4.html">
+        <img src="images/product4.jpg" alt="Product 4" class="thumbnail">
+        <h3>Product 4</h3>
+      </a>
+      <p>$49.99</p>
+      <button class="add-to-cart">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product5.html">
+        <img src="images/product5.jpg" alt="Product 5" class="thumbnail">
+        <h3>Product 5</h3>
+      </a>
+      <p>$59.99</p>
+      <button class="add-to-cart">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product6.html">
+        <img src="images/product6.jpg" alt="Product 6" class="thumbnail">
+        <h3>Product 6</h3>
+      </a>
+      <p>$69.99</p>
+      <button class="add-to-cart">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product7.html">
+        <img src="images/product7.jpg" alt="Product 7" class="thumbnail">
+        <h3>Product 7</h3>
+      </a>
+      <p>$79.99</p>
+      <button class="add-to-cart">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product8.html">
+        <img src="images/product8.jpg" alt="Product 8" class="thumbnail">
+        <h3>Product 8</h3>
+      </a>
+      <p>$89.99</p>
+      <button class="add-to-cart">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product9.html">
+        <img src="images/product9.jpg" alt="Product 9" class="thumbnail">
+        <h3>Product 9</h3>
+      </a>
+      <p>$99.99</p>
+      <button class="add-to-cart">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product10.html">
+        <img src="images/product10.jpg" alt="Product 10" class="thumbnail">
+        <h3>Product 10</h3>
+      </a>
+      <p>$109.99</p>
+      <button class="add-to-cart">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product11.html">
+        <img src="images/product11.jpg" alt="Product 11" class="thumbnail">
+        <h3>Product 11</h3>
+      </a>
+      <p>$119.99</p>
+      <button class="add-to-cart">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product12.html">
+        <img src="images/product12.jpg" alt="Product 12" class="thumbnail">
+        <h3>Product 12</h3>
+      </a>
+      <p>$129.99</p>
+      <button class="add-to-cart">Add to Cart</button>
+    </div>
+  </section>
+
+  <!-- Shopping Cart Hover -->
+  <div id="shopping-cart" class="shopping-cart">
+    <h3>Shopping Cart</h3>
+    <ul>
+      <li>Product 1 - <input type="number" value="0" min="0"> x $19.99</li>
+      <li>Product 2 - <input type="number" value="0" min="0"> x $29.99</li>
+      <li>Product 3 - <input type="number" value="0" min="0"> x $39.99</li>
+      <li>Product 4 - <input type="number" value="0" min="0"> x $49.99</li>
+      <li>Product 5 - <input type="number" value="0" min="0"> x $59.99</li>
+      <li>Product 6 - <input type="number" value="0" min="0"> x $69.99</li>
+      <li>Product 7 - <input type="number" value="0" min="0"> x $79.99</li>
+      <li>Product 8 - <input type="number" value="0" min="0"> x $89.99</li>
+      <li>Product 9 - <input type="number" value="0" min="0"> x $99.99</li>
+      <li>Product 10 - <input type="number" value="0" min="0"> x $109.99</li>
+      <li>Product 11 - <input type="number" value="0" min="0"> x $119.99</li>
+      <li>Product 12 - <input type="number" value="0" min="0"> x $129.99</li>
+    </ul>
+    <button class="checkout">Checkout</button>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Dummy Shopping Website</p>
+  </footer>
+
+  <!-- Link to External JavaScript File -->
+  <script src="scripts/cart.js"></script>
+</body>
+</html>

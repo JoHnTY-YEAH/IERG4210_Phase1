@@ -1,0 +1,33 @@
+project-folder/
+│
+├── index.html
+├── styles/
+│   └── main.css
+├── scripts/
+│   └── cart.js
+├── images/
+│   └── product1.jpg
+│   └── product2.jpg
+│   └── product3.jpg
+│   └── product4.jpg
+│   └── product5.jpg
+│   └── product6.jpg
+│   └── product7.jpg
+│   └── product8.jpg
+│   └── product9.jpg
+│   └── product10.jpg
+│   └── product11.jpg
+│   └── product12.jpg
+└── products/
+    └── product1.html
+    └── product2.html
+    └── product3.html
+    └── product4.html
+    └── product5.html
+    └── product6.html
+    └── product7.html
+    └── product8.html
+    └── product9.html
+    └── product10.html
+    └── product11.html
+    └── product12.html
