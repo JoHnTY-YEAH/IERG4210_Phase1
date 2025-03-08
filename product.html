@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details - Dummy Shopping Website</title>
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+  <header>
+    <h1>Dummy Shopping Website</h1>
+    <nav>
+      <ul>
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="#">Categories</a></li>
+        <li><a href="#">About</a></li>
+      </ul>
+    </nav>
+    <button id="cart-button" class="cart-button">Cart (0)</button>
+  </header>
+
+  <section class="breadcrumb"></section>
+
+  <section class="product-details">
+    <div class="product-image">
+      <img src="" alt="" class="full-size-image">
+    </div>
+    <div class="product-info">
+      <h2></h2>
+      <p class="price"></p>
+      <p class="description"></p>
+      <button class="add-to-cart" data-pid="">Add to Cart</button>
+    </div>
+  </section>
+
+  <div id="shopping-cart" class="shopping-cart">
+    <h3>Shopping Cart</h3>
+    <ul></ul>
+    <button class="checkout">Checkout</button>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Dummy Shopping Website</p>
+  </footer>
+
+  <script src="../scripts/cart.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pid = urlParams.get('pid');
+      fetch(`/product?pid=${pid}`)
+        .then(res => res.json())
+        .then(prod => {
+          document.querySelector('.product-image img').src = `/${prod.image_large}`;
+          document.querySelector('.product-image img').alt = prod.name;
+          document.querySelector('.product-info h2').textContent = prod.name;
+          document.querySelector('.price').textContent = `$${prod.price}`;
+          document.querySelector('.description').textContent = prod.description;
+          document.querySelector('.add-to-cart').dataset.pid = prod.pid;
+          document.querySelector('.breadcrumb').innerHTML = `<a href="../index.html">Home</a> > <a href="#">Category ${prod.catid}</a> > ${prod.name}`;
+        });
+    });
+  </script>
+</body>
+</html>

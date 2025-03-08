@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dummy Shopping Website</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <h1>Dummy Shopping Website</h1>
+    <nav>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Categories</a></li>
+        <li><a href="#">About</a></li>
+      </ul>
+    </nav>
+    <button id="cart-button" class="cart-button">Cart (0)</button>
+  </header>
+
+  <!-- Breadcrumb Navigation -->
+  <section class="breadcrumb" id="breadcrumb">
+    <p><a href="#">Home</a></p>
+  </section>
+
+  <!-- Category List -->
+  <div id="category-list"></div>
+
+  <!-- Product List -->
+  <section class="product-list" id="product-list"></section>
+
+  <!-- Shopping Cart Hover -->
+  <div id="shopping-cart" class="shopping-cart">
+    <h3>Shopping Cart</h3>
+    <ul></ul>
+    <button class="checkout">Checkout</button>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Dummy Shopping Website</p>
+  </footer>
+
+  <script src="scripts/cart.js"></script>
+  <script>
+    // Populate categories
+    fetch('/categories')
+      .then(res => res.json())
+      .then(categories => {
+        const catList = document.getElementById('category-list');
+        catList.innerHTML = '<h2>Categories</h2>';
+        categories.forEach(cat => {
+          const link = document.createElement('a');
+          link.href = `/?catid=${cat.catid}`;
+          link.textContent = cat.name;
+          link.onclick = (e) => {
+            e.preventDefault();
+            loadProducts(cat.catid, cat.name);
+            window.history.pushState({}, '', `/?catid=${cat.catid}`);
+          };
+          catList.appendChild(link);
+          catList.appendChild(document.createElement('br'));
+        });
+      });
+
+    // Load products based on catid
+    function loadProducts(catid, catName) {
+      fetch(`/products?catid=${catid}`)
+        .then(res => res.json())
+        .then(products => {
+          const prodList = document.getElementById('product-list');
+          prodList.innerHTML = '';
+          products.forEach(prod => {
+            const div = document.createElement('div');
+            div.className = 'product';
+            div.innerHTML = `
+              <a href="/product.html?pid=${prod.pid}">
+                <img src="/${prod.image_thumbnail}" alt="${prod.name}" class="thumbnail">
+                <h3>${prod.name}</h3>
+              </a>
+              <p>$${prod.price}</p>
+              <button class="add-to-cart" data-pid="${prod.pid}">Add to Cart</button>
+            `;
+            prodList.appendChild(div);
+          });
+          document.getElementById('breadcrumb').textContent = `Home > ${catName}`;
+        });
+    }
+
+    // Load products on page load if catid exists
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('catid')) {
+      fetch(`/categories`)
+        .then(res => res.json())
+        .then(categories => {
+          const cat = categories.find(c => c.catid == urlParams.get('catid'));
+          loadProducts(urlParams.get('catid'), cat ? cat.name : 'Unknown');
+        });
+    }
+  </script>
+</body>
+</html>
