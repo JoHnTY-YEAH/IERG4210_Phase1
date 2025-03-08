@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product Details - Dummy Shopping Website</title>
-  <link rel="stylesheet" href="../styles/main.css">
+  <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
   <header>
@@ -43,7 +43,7 @@
     <p>&copy; 2025 Dummy Shopping Website</p>
   </footer>
 
-  <script src="../scripts/cart.js"></script>
+  <script src="scripts/cart.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -57,7 +57,7 @@
           document.querySelector('.price').textContent = `$${prod.price}`;
           document.querySelector('.description').textContent = prod.description;
           document.querySelector('.add-to-cart').dataset.pid = prod.pid;
-          document.querySelector('.breadcrumb').innerHTML = `<a href="../index.html">Home</a> > <a href="#">Category ${prod.catid}</a> > ${prod.name}`;
+          document.querySelector('.breadcrumb').innerHTML = `<a href="index.html">Home</a> > <a href="#">Category ${prod.catid}</a> > ${prod.name}`;
         });
     });
   </script>
