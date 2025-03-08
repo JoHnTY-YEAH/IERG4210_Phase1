@@ -1,10 +1,12 @@
 project-folder/
 │
+├── admin.html
 ├── index.html
 ├── styles/
 │   └── main.css
 ├── scripts/
 │   └── cart.js
+│   └── node.js
 ├── images/
 │   └── product1.jpg
 │   └── product2.jpg

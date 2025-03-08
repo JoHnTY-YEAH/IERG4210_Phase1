@@ -151,7 +151,64 @@
     <p>&copy; 2025 Dummy Shopping Website</p>
   </footer>
 
-  <!-- Link to External JavaScript File -->
   <script src="scripts/cart.js"></script>
+  <script>
+    // Populate categories
+    fetch('/categories')
+      .then(res => res.json())
+      .then(categories => {
+        const catList = document.getElementById('category-list');
+        catList.innerHTML = '<h2>Categories</h2>';
+        categories.forEach(cat => {
+          const link = document.createElement('a');
+          link.href = `/?catid=${cat.catid}`;
+          link.textContent = cat.name;
+          link.onclick = (e) => {
+            e.preventDefault();
+            loadProducts(cat.catid, cat.name);
+            window.history.pushState({}, '', `/?catid=${cat.catid}`);
+          };
+          catList.appendChild(link);
+          catList.appendChild(document.createElement('br'));
+        });
+      });
+
+    // Load products based on catid
+    function loadProducts(catid, catName) {
+      fetch(`/products?catid=${catid}`)
+        .then(res => res.json())
+        .then(products => {
+          const prodList = document.getElementById('product-list');
+          prodList.innerHTML = '';
+          products.forEach(prod => {
+            const div = document.createElement('div');
+            div.className = 'product';
+            div.innerHTML = `
+              <a href="/product.html?pid=${prod.pid}">
+                <img src="/${prod.image_thumbnail}" alt="${prod.name}" class="thumbnail">
+                <h3>${prod.name}</h3>
+              </a>
+              <p>$${prod.price}</p>
+              <button class="add-to-cart" data-pid="${prod.pid}">Add to Cart</button>
+            `;
+            prodList.appendChild(div);
+          });
+          document.getElementById('breadcrumb').textContent = `Home > ${catName}`;
+        });
+    }
+
+    // Load products on page load if catid exists
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('catid')) {
+      fetch(`/categories`)
+        .then(res => res.json())
+        .then(categories => {
+          const cat = categories.find(c => c.catid == urlParams.get('catid'));
+          loadProducts(urlParams.get('catid'), cat ? cat.name : 'Unknown');
+        });
+    }
+
+  <!-- Link to External JavaScript File -->
+  </script>script src="scripts/cart.js"></script>
 </body>
 </html>
