@@ -1,0 +1,286 @@
+Very nice, now what commands should I run to get both phases done?
+My Github url is https://github.com/JoHnTY-YEAH/IERG4210_Phase1.git
+In Azure, a virtual machine named "IERG4210" is used for this project:
+Public IP address: 20.249.188.8
+
+I have just uploaded all the files to my Github repository, what should I do in the vm terminal now?
+For more details:
+I entered my VM after: cd /Users/lifehater/Downloads then ssh -i IERG4210_key.pem azureuser@20.249.188.8
+
+DB_HOST=localhost
+DB_USER=shop_user
+DB_PASSWORD=Fd&5cb4VZ
+DB_NAME=shopping_db
+
+Please guide me through everything including Mysql, uploading photos and using public/admin.html etc.
+
+---------------------
+
+Great! Since you’ve uploaded your files to your GitHub repository (`https://github.com/JoHnTY-YEAH/IERG4210_Phase1.git`) and have access to your Azure VM ("IERG4210" at `20.249.188.8`), I’ll guide you step-by-step through setting up your environment on the VM, installing dependencies, setting up MySQL, deploying your Node.js application, uploading photos, and using the `public/admin.html` interface. I’ll assume you’re starting fresh on the VM and need a complete setup.
+
+---
+
+### **Step-by-Step Guide**
+
+#### **1. Connect to the VM and Set Up the Working Directory**
+You’ve already connected to the VM using:
+```bash
+cd /Users/lifehater/Downloads
+ssh -i IERG4210_key.pem azureuser@20.249.188.8
+```
+- This connects you as the `azureuser`. Once connected, you’re in the VM’s home directory (likely `/home/azureuser`).
+
+**Create a Working Directory**:
+```bash
+mkdir ~/IERG4210_project
+cd ~/IERG4210_project
+```
+- This sets up a dedicated directory for your project.
+
+#### **2. Clone Your GitHub Repository**
+Clone your repository to the VM:
+```bash
+git clone https://github.com/JoHnTY-YEAH/IERG4210_Phase1.git .
+```
+- The `.` at the end ensures the repository contents are cloned into the current directory (`~/IERG4210_project`).
+- If you encounter authentication issues, ensure your SSH key (`IERG4210_key.pem`) is added to your GitHub SSH keys (run `ssh -T git@github.com` to test).
+
+#### **3. Install Node.js and Dependencies**
+Ensure Node.js and npm are installed:
+```bash
+sudo apt update
+sudo apt install -y nodejs npm
+```
+- Check versions:
+  ```bash
+  node -v  # Should be v14.x or higher
+  npm -v   # Should be v6.x or higher
+  ```
+- If versions are outdated, consider using a Node Version Manager (nvm) or installing a specific version.
+
+Install project dependencies:
+```bash
+npm install express body-parser mysql multer sharp cors dotenv
+```
+
+#### **4. Set Up MySQL**
+Install MySQL on the VM:
+```bash
+sudo apt install -y mysql-server
+```
+- Secure the MySQL installation (set a root password):
+  ```bash
+  sudo mysql_secure_installation
+  ```
+  - Follow the prompts: set a root password, remove anonymous users, disallow root login remotely, remove test database, and reload privileges.
+
+**Log in to MySQL**:
+```bash
+sudo mysql -u root -p
+```
+- Enter the root password you set.
+
+**Create the Database and User**:
+```sql
+CREATE DATABASE shopping_db;
+CREATE USER 'shop_user'@'localhost' IDENTIFIED BY 'Fd&5cb4VZ';
+GRANT ALL PRIVILEGES ON shopping_db.* TO 'shop_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+**Create Tables and Insert Data**:
+```bash
+mysql -u shop_user -p shopping_db < setup.sql
+```
+- You’ll need to create a `setup.sql` file with the table creation and sample data. Based on your project, create this file locally (e.g., in `project-folder/setup.sql`) with the following content:
+
+```sql
+CREATE TABLE categories (
+    catid INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE products (
+    pid INT AUTO_INCREMENT PRIMARY KEY,
+    catid INT,
+    name VARCHAR(255) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    description TEXT NOT NULL,
+    image VARCHAR(255),
+    thumbnail VARCHAR(255),
+    FOREIGN KEY (catid) REFERENCES categories(catid)
+);
+
+INSERT INTO categories (name) VALUES ('Electronics'), ('Clothing');
+INSERT INTO products (catid, name, price, description) VALUES
+(1, 'Product 1', 19.99, 'A great electronic gadget'),
+(1, 'Product 2', 29.99, 'Another electronic device'),
+(2, 'Product 3', 39.99, 'Stylish clothing item'),
+(2, 'Product 4', 49.99, 'Comfortable apparel');
+```
+
+- Upload `setup.sql` to the VM (e.g., using `scp`):
+  ```bash
+  scp -i IERG4210_key.pem /path/to/setup.sql azureuser@20.249.188.8:~/IERG4210_project/
+  ```
+- Then run the `mysql` command above.
+
+**Verify Database**:
+```bash
+mysql -u shop_user -p shopping_db
+```
+- Run `SHOW TABLES;` and `SELECT * FROM categories;` to confirm.
+
+#### **5. Configure Environment Variables**
+Create a `.env` file in `~/IERG4210_project`:
+```bash
+nano .env
+```
+- Add:
+  ```
+  DB_HOST=localhost
+  DB_USER=shop_user
+  DB_PASSWORD=Fd&5cb4VZ
+  DB_NAME=shopping_db
+  ```
+- Save and exit (`Ctrl+O`, `Enter`, `Ctrl+X`).
+
+- Ensure `.env` is not tracked by Git:
+  ```bash
+  echo ".env" >> .gitignore
+  ```
+
+#### **6. Create the `uploads/` Directory**
+Since `multer` stores uploaded images in `uploads/`, create this folder:
+```bash
+mkdir uploads
+chmod 755 uploads
+```
+- The `chmod 755` ensures the directory is writable by the application.
+
+#### **7. Start the Node.js Server**
+Run your application:
+```bash
+node server.js
+```
+- You should see “Server started on port 3000” in the console.
+- Test it by opening `http://20.249.188.8:3000` in a browser. You should see `index.html`.
+
+**Run in Background (Optional)**:
+- Use `pm2` for process management:
+  ```bash
+  npm install -g pm2
+  pm2 start server.js
+  pm2 save
+  pm2 startup
+  ```
+- This keeps the server running after logout.
+
+#### **8. Upload Photos Using `public/admin.html`**
+- **Access the Admin Panel**:
+  - Open `http://20.249.188.8:3000/public/admin.html` in a browser.
+- **Add a Product with an Image**:
+  1. Select a category from the dropdown (e.g., “Electronics”).
+  2. Enter a product name (e.g., “Smartphone”), price (e.g., 199.99), and description.
+  3. Upload an image (e.g., `product5.jpg` from your local machine) by clicking the file input and selecting a `.jpg`, `.png`, or `.gif` file (<10MB).
+  4. Click “Add Product”.
+  - The server will resize the image, create a thumbnail, and store both in `uploads/`. Refresh the product list to see the new entry.
+- **Edit or Delete**:
+  - Click “Edit” to modify a product, or “Delete” to remove it (with confirmation).
+  - The “View” link opens the product in `product.html`.
+
+- **Upload Process**:
+  - Ensure your local images are in a supported format and under 10MB.
+  - After uploading, check `uploads/` on the VM to verify the files (e.g., `thumbnail-filename.jpg`).
+
+#### **9. Test the Application**
+- **Main Page (`index.html`)**:
+  - Visit `http://20.249.188.8:3000`. Categories should load, and selecting one updates the product list.
+- **Product Details (`product.html`)**:
+  - Click a product link (e.g., `product.html?pid=1`) to see details.
+- **Shopping Cart (`cart.js`)**:
+  - Add products to the cart, update quantities, and check the total.
+- **Admin Panel (`public/admin.html`)**:
+  - Verify you can add, edit, and delete products and categories.
+
+#### **10. Troubleshooting**
+- **Database Connection Issues**:
+  - Check MySQL logs (`sudo journalctl -u mysql`) or test with `mysql -u shop_user -p shopping_db`.
+- **Server Not Responding**:
+  - Ensure port 3000 is open on the VM. Configure Azure Network Security Group (NSG) to allow inbound traffic on port 3000.
+- **Image Upload Fails**:
+  - Verify `uploads/` exists and is writable (`ls -ld uploads` should show `drwxr-xr-x`).
+
+#### **11. Additional Security**
+- **Firewall**:
+  - Allow only necessary ports (e.g., 22 for SSH, 3000 for HTTP):
+    ```bash
+    sudo ufw allow 22
+    sudo ufw allow 3000
+    sudo ufw enable
+    ```
+- **SSH Key Protection**:
+  - Ensure `IERG4210_key.pem` has restricted permissions:
+    ```bash
+    chmod 400 /Users/lifehater/Downloads/IERG4210_key.pem
+    ```
+
+---
+
+### **Summary of Commands**
+```bash
+# Connect to VM
+cd /Users/lifehater/Downloads
+ssh -i IERG4210_key.pem azureuser@20.249.188.8
+
+# Set up project directory
+mkdir ~/IERG4210_project
+cd ~/IERG4210_project
+git clone https://github.com/JoHnTY-YEAH/IERG4210_Phase1.git .
+
+# Install dependencies
+sudo apt update
+sudo apt install -y nodejs npm
+npm install express body-parser mysql multer sharp cors dotenv
+
+# Install and configure MySQL
+sudo apt install -y mysql-server
+sudo mysql_secure_installation
+sudo mysql -u root -p
+CREATE DATABASE shopping_db;
+CREATE USER 'shop_user'@'localhost' IDENTIFIED BY 'Fd&5cb4VZ';
+GRANT ALL PRIVILEGES ON shopping_db.* TO 'shop_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+mysql -u shop_user -p shopping_db < setup.sql
+
+# Set up environment variables
+nano .env
+# Add: DB_HOST=localhost, DB_USER=shop_user, DB_PASSWORD=Fd&5cb4VZ, DB_NAME=shopping_db
+echo ".env" >> .gitignore
+
+# Create uploads directory
+mkdir uploads
+chmod 755 uploads
+
+# Start server
+node server.js
+# Or with pm2
+npm install -g pm2
+pm2 start server.js
+pm2 save
+pm2 startup
+
+# Test and use
+# Open http://20.249.188.8:3000, http://20.249.188.8:3000/product.html?pid=1, http://20.249.188.8:3000/public/admin.html
+```
+
+---
+
+### **Next Steps**
+- Test the full workflow (add products, view them, add to cart).
+- Let me know if you encounter errors or need help with specific parts (e.g., NSG configuration, image uploads).
+- Consider backing up your VM or database periodically.
+
+You’re all set to complete both phases!
