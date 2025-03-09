@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dummy Shopping Website</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <header>
+    <h1>Dummy Shopping Website</h1>
+    <nav>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Categories</a></li>
+        <li><a href="#">About</a></li>
+      </ul>
+    </nav>
+    <button id="cart-button" class="cart-button">Cart (0)</button>
+  </header>
+
+  <section class="breadcrumb">
+    <p><a href="#">Home</a> > <span id="breadcrumb-category">All Categories</span></p>
+  </section>
+
+  <section class="category-select">
+    <label for="category-select">Select Category:</label>
+    <select id="category-select">
+      <option value="">-- Select a Category --</option>
+    </select>
+  </section>
+
+  <section class="product-list" id="product-list">
+    <!-- Products will be loaded dynamically -->
+  </section>
+
+  <div id="shopping-cart" class="shopping-cart">
+    <button class="close-cart">×</button>
+    <h3>Shopping Cart</h3>
+    <ul class="cart-items"></ul>
+    <button class="checkout">Checkout</button>
+  </div>
+
+  <footer>
+    <p>© 2025 Dummy Shopping Website</p>
+  </footer>
+
+  <script src="cart.js"></script>
+</body>
+</html>

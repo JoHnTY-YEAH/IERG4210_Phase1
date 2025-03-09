@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <header>
+    <h1>Dummy Shopping Website</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="#">Categories</a></li>
+        <li><a href="#">About</a></li>
+      </ul>
+    </nav>
+    <button id="cart-button" class="cart-button">Cart (0)</button>
+  </header>
+
+  <section class="product-details">
+    <h2 id="product-name"></h2>
+    <img id="product-image" src="" alt="Product Image">
+    <p id="product-price"></p>
+    <p id="product-description"></p>
+    <button class="add-to-cart" id="add-to-cart">Add to Cart</button>
+    <p><a href="index.html">Back to Home</a></p>
+  </section>
+
+  <div id="shopping-cart" class="shopping-cart">
+    <button class="close-cart">×</button>
+    <h3>Shopping Cart</h3>
+    <ul class="cart-items"></ul>
+    <button class="checkout">Checkout</button>
+  </div>
+
+  <footer>
+    <p>© 2025 Dummy Shopping Website</p>
+  </footer>
+
+  <script src="cart.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Extract pid from URL query string or pathname
+      const urlParams = new URLSearchParams(window.location.search);
+      let pid = urlParams.get('pid');
+      if (!pid) {
+        pid = window.location.pathname.split('/').pop().replace('product', '').replace('.html', '') || '1'; // Default to 1 if not found
+      }
+      fetch(`http://20.249.188.8:3000/product/${pid}`)
+        .then(response => response.json())
+        .then(product => {
+          if (product) {
+            document.getElementById('product-name').textContent = product.name || 'Product Not Found';
+            document.getElementById('product-image').src = product.image || `images/product${pid}.jpg`;
+            document.getElementById('product-price').textContent = `$${product.price || 'N/A'}`;
+            document.getElementById('product-description').textContent = product.description || 'No description available.';
+            const addToCartBtn = document.getElementById('add-to-cart');
+            addToCartBtn.setAttribute('data-pid', pid);
+            addToCartBtn.setAttribute('data-name', product.name);
+            addToCartBtn.setAttribute('data-price', product.price);
+          } else {
+            document.getElementById('product-name').textContent = 'Product Not Found';
+            document.getElementById('product-image').src = '';
+            document.getElementById('product-price').textContent = '';
+            document.getElementById('product-description').textContent = '';
+          }
+        })
+        .catch(error => console.error('Error fetching product:', error));
+    });
+  </script>
+</body>
+</html>
