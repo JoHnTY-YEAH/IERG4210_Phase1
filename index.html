@@ -21,84 +21,131 @@
   </header>
 
   <!-- Breadcrumb Navigation -->
-  <section class="breadcrumb" id="breadcrumb">
-    <p><a href="#">Home</a></p>
+  <section class="breadcrumb">
+    <p><a href="#">Home</a> > <a href="#">Category 1</a></p>
   </section>
 
-  <!-- Category List -->
-  <div id="category-list"></div>
+  <!-- Category Select Dropdown -->
+  <section class="category-select">
+    <label for="category-select">Select Category:</label>
+    <select id="category-select">
+      <option value="">-- Select a Category --</option>
+    </select>
+  </section>
 
   <!-- Product List -->
-  <section class="product-list" id="product-list"></section>
+  <section class="product-list" id="product-list">
+    <div class="product">
+      <a href="products/product1.html">
+        <img src="images/product1.jpg" alt="Product 1" class="thumbnail">
+        <h3>Product 1</h3>
+      </a>
+      <p>$19.99</p>
+      <button class="add-to-cart" data-pid="1" data-name="Product 1" data-price="19.99">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product2.html">
+        <img src="images/product2.jpg" alt="Product 2" class="thumbnail">
+        <h3>Product 2</h3>
+      </a>
+      <p>$29.99</p>
+      <button class="add-to-cart" data-pid="2" data-name="Product 2" data-price="29.99">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product3.html">
+        <img src="images/product3.jpg" alt="Product 3" class="thumbnail">
+        <h3>Product 3</h3>
+      </a>
+      <p>$39.99</p>
+      <button class="add-to-cart" data-pid="3" data-name="Product 3" data-price="39.99">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product4.html">
+        <img src="images/product4.jpg" alt="Product 4" class="thumbnail">
+        <h3>Product 4</h3>
+      </a>
+      <p>$49.99</p>
+      <button class="add-to-cart" data-pid="4" data-name="Product 4" data-price="49.99">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product5.html">
+        <img src="images/product5.jpg" alt="Product 5" class="thumbnail">
+        <h3>Product 5</h3>
+      </a>
+      <p>$59.99</p>
+      <button class="add-to-cart" data-pid="5" data-name="Product 5" data-price="59.99">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product6.html">
+        <img src="images/product6.jpg" alt="Product 6" class="thumbnail">
+        <h3>Product 6</h3>
+      </a>
+      <p>$69.99</p>
+      <button class="add-to-cart" data-pid="6" data-name="Product 6" data-price="69.99">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product7.html">
+        <img src="images/product7.jpg" alt="Product 7" class="thumbnail">
+        <h3>Product 7</h3>
+      </a>
+      <p>$79.99</p>
+      <button class="add-to-cart" data-pid="7" data-name="Product 7" data-price="79.99">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product8.html">
+        <img src="images/product8.jpg" alt="Product 8" class="thumbnail">
+        <h3>Product 8</h3>
+      </a>
+      <p>$89.99</p>
+      <button class="add-to-cart" data-pid="8" data-name="Product 8" data-price="89.99">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product9.html">
+        <img src="images/product9.jpg" alt="Product 9" class="thumbnail">
+        <h3>Product 9</h3>
+      </a>
+      <p>$99.99</p>
+      <button class="add-to-cart" data-pid="9" data-name="Product 9" data-price="99.99">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product10.html">
+        <img src="images/product10.jpg" alt="Product 10" class="thumbnail">
+        <h3>Product 10</h3>
+      </a>
+      <p>$109.99</p>
+      <button class="add-to-cart" data-pid="10" data-name="Product 10" data-price="109.99">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product11.html">
+        <img src="images/product11.jpg" alt="Product 11" class="thumbnail">
+        <h3>Product 11</h3>
+      </a>
+      <p>$119.99</p>
+      <button class="add-to-cart" data-pid="11" data-name="Product 11" data-price="119.99">Add to Cart</button>
+    </div>
+    <div class="product">
+      <a href="products/product12.html">
+        <img src="images/product12.jpg" alt="Product 12" class="thumbnail">
+        <h3>Product 12</h3>
+      </a>
+      <p>$129.99</p>
+      <button class="add-to-cart" data-pid="12" data-name="Product 12" data-price="129.99">Add to Cart</button>
+    </div>
+  </section>
 
   <!-- Shopping Cart Hover -->
   <div id="shopping-cart" class="shopping-cart">
+    <button class="close-cart">×</button>
     <h3>Shopping Cart</h3>
-    <ul></ul>
+    <ul class="cart-items"></ul>
     <button class="checkout">Checkout</button>
   </div>
 
   <!-- Footer -->
   <footer>
-    <p>&copy; 2025 Dummy Shopping Website</p>
+    <p>© 2025 Dummy Shopping Website</p>
   </footer>
 
-  <script src="scripts/cart.js"></script>
-  <script>
-    // Populate categories
-    fetch('/categories')
-      .then(res => res.json())
-      .then(categories => {
-        const catList = document.getElementById('category-list');
-        catList.innerHTML = '<h2>Categories</h2>';
-        categories.forEach(cat => {
-          const link = document.createElement('a');
-          link.href = `/?catid=${cat.catid}`;
-          link.textContent = cat.name;
-          link.onclick = (e) => {
-            e.preventDefault();
-            loadProducts(cat.catid, cat.name);
-            window.history.pushState({}, '', `/?catid=${cat.catid}`);
-          };
-          catList.appendChild(link);
-          catList.appendChild(document.createElement('br'));
-        });
-      });
-
-    // Load products based on catid
-    function loadProducts(catid, catName) {
-      fetch(`/products?catid=${catid}`)
-        .then(res => res.json())
-        .then(products => {
-          const prodList = document.getElementById('product-list');
-          prodList.innerHTML = '';
-          products.forEach(prod => {
-            const div = document.createElement('div');
-            div.className = 'product';
-            div.innerHTML = `
-              <a href="/product.html?pid=${prod.pid}">
-                <img src="/${prod.image_thumbnail}" alt="${prod.name}" class="thumbnail">
-                <h3>${prod.name}</h3>
-              </a>
-              <p>$${prod.price}</p>
-              <button class="add-to-cart" data-pid="${prod.pid}">Add to Cart</button>
-            `;
-            prodList.appendChild(div);
-          });
-          document.getElementById('breadcrumb').textContent = `Home > ${catName}`;
-        });
-    }
-
-    // Load products on page load if catid exists
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('catid')) {
-      fetch(`/categories`)
-        .then(res => res.json())
-        .then(categories => {
-          const cat = categories.find(c => c.catid == urlParams.get('catid'));
-          loadProducts(urlParams.get('catid'), cat ? cat.name : 'Unknown');
-        });
-    }
-  </script>
+  <script src="cart.js"></script>
 </body>
 </html>

@@ -7,7 +7,8 @@ body {
   color: #333; /* Dark text for contrast */
 }
 
-.admin-container {
+/* Main container (not explicitly in admin.html, but applied to body for consistency) */
+body {
   max-width: 800px;
   margin: 20px auto;
   padding: 20px;
@@ -29,8 +30,8 @@ h2 {
   margin-bottom: 10px;
 }
 
-/* Form Container Styles */
-.form-container {
+/* Form Styles (applied to #product-form and #category-form) */
+form {
   margin-bottom: 20px;
   padding: 20px;
   background-color: #f9f9f9; /* Light gray form background */
@@ -38,7 +39,7 @@ h2 {
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.05); /* Subtle shadow */
 }
 
-.form-container label {
+form label {
   display: block;
   margin-bottom: 8px;
   font-weight: 600;
@@ -46,10 +47,10 @@ h2 {
   font-size: 0.9em;
 }
 
-.form-container input[type="text"],
-.form-container input[type="number"],
-.form-container textarea,
-.form-container select {
+form input[type="text"],
+form input[type="number"],
+form textarea,
+form select {
   width: 60%; /* Shorter input bars */
   padding: 10px;
   margin-bottom: 15px;
@@ -61,95 +62,121 @@ h2 {
   transition: border-color 0.3s ease;
 }
 
-.form-container input[type="text"]:focus,
-.form-container input[type="number"]:focus,
-.form-container textarea:focus,
-.form-container select:focus {
+form input[type="text"]:focus,
+form input[type="number"]:focus,
+form textarea:focus,
+form select:focus {
   border-color: #4CAF50; /* Green border on focus */
   outline: none;
 }
 
-.form-container textarea {
+form textarea {
   resize: vertical;
   min-height: 100px;
   width: 60%; /* Shorter textarea */
 }
 
-.form-container input[type="file"] {
+form input[type="file"] {
   padding: 5px;
   background-color: #ffffff; /* White file input background */
   color: #333; /* Dark text for file input */
 }
 
+/* Error Message Styles */
+.error {
+  color: red;
+  font-size: 0.9em;
+  margin-bottom: 15px;
+}
+
 /* Button Styles */
-.btn {
+button {
   display: inline-block;
   padding: 10px 20px;
   font-size: 0.9em;
   font-weight: 600;
   color: #fff;
-  background-color: #4CAF50; /* Green button background */
+  background-color: #4CAF50; /* Green button background for submit buttons */
   border: none;
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
-.btn:hover {
+button:hover {
   background-color: #45a049; /* Darker green on hover */
 }
 
-.btn-delete {
+/* Delete Button Styles (specific to buttons inside product/category lists) */
+ul button {
   background-color: #e74c3c; /* Red for delete button */
+  padding: 5px 10px; /* Smaller padding for delete buttons */
 }
 
-.btn-delete:hover {
+ul button:hover {
   background-color: #c0392b; /* Darker red on hover */
+}
+
+/* List Styles */
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #ddd; /* Light border instead of #ccc */
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff; /* White background for list items */
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .admin-container {
-    padding: 15px;
+  body {
+      padding: 15px;
   }
 
   h1 {
-    font-size: 1.8em;
+      font-size: 1.8em;
   }
 
   h2 {
-    font-size: 1.3em;
+      font-size: 1.3em;
   }
 
-  .form-container {
-    padding: 15px;
+  form {
+      padding: 15px;
   }
 
-  .form-container input[type="text"],
-  .form-container input[type="number"],
-  .form-container textarea,
-  .form-container select {
-    width: 100%; /* Full width on smaller screens */
+  form input[type="text"],
+  form input[type="number"],
+  form textarea,
+  form select {
+      width: 100%; /* Full width on smaller screens */
   }
 
-  .btn {
-    width: 100%;
-    padding: 12px;
+  button {
+      width: 100%;
+      padding: 12px;
   }
 }
 
-/* Animation for Form Containers */
-.form-container {
+/* Animation for Forms */
+form {
   animation: fadeIn 0.5s ease-in-out;
 }
 
 @keyframes fadeIn {
   from {
-    opacity: 0;
-    transform: translateY(10px);
+      opacity: 0;
+      transform: translateY(10px);
   }
   to {
-    opacity: 1;
-    transform: translateY(0);
+      opacity: 1;
+      transform: translateY(0);
   }
 }

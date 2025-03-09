@@ -1,124 +1,193 @@
 const express = require('express');
-const mysql = require('mysql2/promise');
-const fileUpload = require('express-fileupload');
-const sharp = require('sharp');
+const bodyParser = require('body-parser');
+const mysql = require('mysql');
 const path = require('path');
-const app = express();
+const multer = require('multer');
+const sharp = require('sharp');
+const cors = require('cors');
 
-// Middleware
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(fileUpload());
-app.use(express.static('public'));
+const app = express();
+const upload = multer({ dest: 'uploads/' });
+
+// Enable CORS
+app.use(cors());
 
 // MySQL Connection
-const db = mysql.createPool({
+const db = mysql.createConnection({
     host: 'localhost',
     user: 'shop_user',
     password: 'Fd&5cb4VZ',
     database: 'shopping_db'
 });
 
-// Routes for Main Page
-app.get('/categories', async (req, res) => {
-    const [rows] = await db.execute('SELECT * FROM categories');
-    res.json(rows);
+db.connect((err) => {
+    if (err) throw err;
+    console.log('MySQL connected');
 });
 
-app.get('/products', async (req, res) => {
-    const catid = req.query.catid;
-    const [rows] = await db.execute('SELECT * FROM products WHERE catid = ?', [catid]);
-    res.json(rows);
+// Middleware
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname)); // Serve root directory for images, uploads, etc.
+
+// API Endpoints
+
+// Get all categories
+app.get('/categories', (req, res) => {
+    const sql = 'SELECT * FROM categories';
+    db.query(sql, (err, results) => {
+        if (err) throw err;
+        res.json(results);
+    });
 });
 
-app.get('/product', async (req, res) => {
-    const { pid } = req.query;
-    const [rows] = await db.execute('SELECT * FROM products WHERE pid = ?', [pid]);
-    if (rows.length > 0) res.json(rows[0]);
-    else res.status(404).send('Product not found');
+// Get all products
+app.get('/products', (req, res) => {
+    const sql = 'SELECT * FROM products';
+    db.query(sql, (err, results) => {
+        if (err) throw err;
+        res.json(results);
+    });
 });
 
-// Admin Routes
-app.get('/admin/categories', async (req, res) => {
-    const [rows] = await db.execute('SELECT * FROM categories');
-    res.json(rows);
+// Get products by category ID
+app.get('/products/:catid', (req, res) => {
+    const catid = req.params.catid;
+    const sql = 'SELECT * FROM products WHERE catid = ?';
+    db.query(sql, [catid], (err, results) => {
+        if (err) throw err;
+        res.json(results);
+    });
 });
 
-app.post('/admin/add-product', async (req, res) => {
-    const { pid, catid, name, price, description } = req.body;
-    const image = req.files?.image;
+// Get single product by ID
+app.get('/product/:pid', (req, res) => {
+    const pid = req.params.pid;
+    const sql = 'SELECT * FROM products WHERE pid = ?';
+    db.query(sql, [pid], (err, results) => {
+        if (err) throw err;
+        res.json(results[0] || {});
+    });
+});
+
+// Add a new product with validation
+app.post('/add-product', upload.single('image'), (req, res) => {
+    const { catid, name, price, description } = req.body;
+    const imagePath = req.file ? req.file.path : null;
 
     // Server-side validation
-    if (!name || !price || !description || !catid) return res.status(400).send('All fields are required');
-    if (isNaN(price) || price <= 0) return res.status(400).send('Invalid price');
-    if (!pid && (!image || image.size > 10 * 1024 * 1024)) {
-        return res.status(400).send('Image required for new products, max 10MB');
+    if (!catid || !name || !price || !description || isNaN(price) || price < 0) {
+        return res.status(400).send('Invalid input: All fields are required and price must be a non-negative number');
+    }
+    if (imagePath && req.file.size > 10 * 1024 * 1024) {
+        return res.status(400).send('Image size exceeds 10MB');
     }
 
-    const fileExt = image ? path.extname(image.name) : '';
-    const fileName = pid ? `prod_${pid}` : `prod_${Date.now()}`;
-    const thumbPath = image ? `public/images/thumb_${fileName}${fileExt}` : null;
-    const largePath = image ? `public/images/large_${fileName}${fileExt}` : null;
-
-    try {
-        if (pid) {
-            const [existing] = await db.execute('SELECT image_thumbnail, image_large FROM products WHERE pid = ?', [pid]);
-            const updateFields = [catid, name, price, description];
-            if (image) {
-                await sharp(image.data).resize(100, 100).toFile(thumbPath);
-                await sharp(image.data).resize(500, 500).toFile(largePath);
-                updateFields.push(thumbPath.replace('public/', ''), largePath.replace('public/', ''));
-            } else {
-                updateFields.push(existing[0].image_thumbnail, existing[0].image_large);
-            }
-            updateFields.push(pid);
-            await db.execute(
-                'UPDATE products SET catid=?, name=?, price=?, description=?, image_thumbnail=?, image_large=? WHERE pid=?',
-                updateFields
-            );
-        } else {
-            await sharp(image.data).resize(100, 100).toFile(thumbPath);
-            await sharp(image.data).resize(500, 500).toFile(largePath);
-            await db.execute(
-                'INSERT INTO products (catid, name, price, description, image_thumbnail, image_large) VALUES (?, ?, ?, ?, ?, ?)',
-                [catid, name, price, description, thumbPath.replace('public/', ''), largePath.replace('public/', '')]
-            );
-        }
-        res.redirect('/admin.html');
-    } catch (err) {
-        res.status(500).send(err.message);
+    if (imagePath) {
+        sharp(imagePath)
+            .resize(200, 200)
+            .toFile(`uploads/thumbnail-${req.file.filename}`, (err) => {
+                if (err) throw err;
+                const thumbnailPath = `uploads/thumbnail-${req.file.filename}`;
+                const sql = 'INSERT INTO products (catid, name, price, description, image, thumbnail) VALUES (?, ?, ?, ?, ?, ?)';
+                db.query(sql, [catid, name, price, description, imagePath, thumbnailPath], (err) => {
+                    if (err) throw err;
+                    res.send('Product added');
+                });
+            });
+    } else {
+        const sql = 'INSERT INTO products (catid, name, price, description) VALUES (?, ?, ?, ?)';
+        db.query(sql, [catid, name, price, description], (err) => {
+            if (err) throw err;
+            res.send('Product added');
+        });
     }
 });
 
-app.post('/admin/delete-product', async (req, res) => {
-    const { pid } = req.body;
-    try {
-        await db.execute('DELETE FROM products WHERE pid = ?', [pid]);
-        res.redirect('/admin.html');
-    } catch (err) {
-        res.status(500).send(err.message);
+// Update a product
+app.put('/update-product/:pid', upload.single('image'), (req, res) => {
+    const { catid, name, price, description } = req.body;
+    const pid = req.params.pid;
+    const imagePath = req.file ? req.file.path : null;
+
+    // Server-side validation
+    if (!catid || !name || !price || !description || isNaN(price) || price < 0) {
+        return res.status(400).send('Invalid input: All fields are required and price must be a non-negative number');
+    }
+    if (imagePath && req.file.size > 10 * 1024 * 1024) {
+        return res.status(400).send('Image size exceeds 10MB');
+    }
+
+    if (imagePath) {
+        sharp(imagePath)
+            .resize(200, 200)
+            .toFile(`uploads/thumbnail-${req.file.filename}`, (err) => {
+                if (err) throw err;
+                const thumbnailPath = `uploads/thumbnail-${req.file.filename}`;
+                const sql = 'UPDATE products SET catid=?, name=?, price=?, description=?, image=?, thumbnail=? WHERE pid=?';
+                db.query(sql, [catid, name, price, description, imagePath, thumbnailPath, pid], (err) => {
+                    if (err) throw err;
+                    res.send('Product updated');
+                });
+            });
+    } else {
+        const sql = 'UPDATE products SET catid=?, name=?, price=?, description=? WHERE pid=?';
+        db.query(sql, [catid, name, price, description, pid], (err) => {
+            if (err) throw err;
+            res.send('Product updated');
+        });
     }
 });
 
-app.post('/admin/add-category', async (req, res) => {
+// Add a new category
+app.post('/add-category', (req, res) => {
     const { name } = req.body;
-    if (!name) return res.status(400).send('Name is required');
-    try {
-        await db.execute('INSERT INTO categories (name) VALUES (?)', [name]);
-        res.redirect('/admin.html');
-    } catch (err) {
-        res.status(500).send(err.message);
+    if (!name) {
+        return res.status(400).send('Category name is required');
     }
+    const sql = 'INSERT INTO categories (name) VALUES (?)';
+    db.query(sql, [name], (err) => {
+        if (err) throw err;
+        res.send('Category added');
+    });
 });
 
-app.post('/admin/delete-category', async (req, res) => {
-    const { catid } = req.body;
-    try {
-        await db.execute('DELETE FROM categories WHERE catid = ?', [catid]);
-        res.redirect('/admin.html');
-    } catch (err) {
-        res.status(500).send(err.message);
+// Update a category
+app.put('/update-category/:catid', (req, res) => {
+    const { name } = req.body;
+    const catid = req.params.catid;
+    if (!name) {
+        return res.status(400).send('Category name is required');
     }
+    const sql = 'UPDATE categories SET name=? WHERE catid=?';
+    db.query(sql, [name, catid], (err) => {
+        if (err) throw err;
+        res.send('Category updated');
+    });
 });
 
-app.listen(3000, () => console.log('Server running on port 3000'));
+// Delete a product
+app.delete('/delete-product/:pid', (req, res) => {
+    const pid = req.params.pid;
+    const sql = 'DELETE FROM products WHERE pid = ?';
+    db.query(sql, [pid], (err) => {
+        if (err) throw err;
+        res.send('Product deleted');
+    });
+});
+
+// Delete a category
+app.delete('/delete-category/:catid', (req, res) => {
+    const catid = req.params.catid;
+    const sql = 'DELETE FROM categories WHERE catid = ?';
+    db.query(sql, [catid], (err) => {
+        if (err) throw err;
+        res.send('Category deleted');
+    });
+});
+
+// Start server
+app.listen(3000, () => {
+    console.log('Server started on port 3000');
+});
