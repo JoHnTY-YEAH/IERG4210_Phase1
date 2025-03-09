@@ -31,7 +31,15 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname)); // Serve root directory for images, uploads, etc.
 
-// API Endpoints
+// Serve index.html explicitly
+app.get('/index.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Serve root route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Get all categories
 app.get('/categories', (req, res) => {
