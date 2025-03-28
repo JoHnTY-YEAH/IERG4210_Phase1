@@ -302,26 +302,6 @@ app.post('/change-password', authenticate, async (req, res) => {
     }
 });
 
-const options = {
-    key: fs.readFileSync('/etc/letsencrypt/live/ierg4210.koreacentral.cloudapp.azure.com/privkey.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/ierg4210.koreacentral.cloudapp.azure.com/fullchain.pem'),
-    ciphers: [
-        'ECDHE-RSA-AES256-GCM-SHA384',
-        'ECDHE-RSA-AES128-GCM-SHA256',
-        '!RC4',
-        '!MD5',
-        '!DES'
-    ].join(':'),
-    honorCipherOrder: true
-};
-
-http.createServer((req, res) => {
-    res.writeHead(301, { Location: `https://ierg4210.koreacentral.cloudapp.azure.com:443${req.url}` });
-    res.end();
-}).listen(3000, () => {
-    console.log('HTTP server redirecting to HTTPS on port 3000');
-});
-
-https.createServer(options, app).listen(3443, () => {
-    console.log('HTTPS Server running on port 3443');
+http.createServer(app).listen(3443, '0.0.0.0', () => {
+    console.log('HTTP Server running on port 3443');
 });
