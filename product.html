@@ -72,12 +72,20 @@
                             if (!response.ok) throw new Error('Logout failed');
                             
                             const result = await response.json();
-                            if (result.success) {
-                                window.location.href = result.redirect || '/login.html';
+                            // Store the new CSRF token from logout response
+                            if (result.csrfToken) {
+                                document.querySelector('#logout-form input[name="csrfToken"]').value = result.csrfToken;
                             }
+                            window.location.href = result.redirect || '/login.html';
                         } catch (err) {
                             console.error('Logout error:', err);
-                            window.location.href = '/login.html'; // Fallback redirect
+                            // Force a fresh CSRF token if logout fails
+                            fetch('https://ierg4210.koreacentral.cloudapp.azure.com/csrf-token', { credentials: 'include' })
+                                .then(res => res.json())
+                                .then(data => {
+                                    document.querySelector('#logout-form input[name="csrfToken"]').value = data.csrfToken;
+                                    window.location.href = '/login.html';
+                                });
                         } finally {
                             button.disabled = false;
                         }

@@ -250,9 +250,20 @@ app.post('/logout', validateCsrfToken, authenticate, async (req, res) => {
     try {
         await db.query('UPDATE users SET auth_token = NULL WHERE userid = ?', [req.user.userid]);
         res.clearCookie('authToken');
-        res.clearCookie('csrfToken');
-        // Return JSON response instead of redirect
-        res.json({ success: true, redirect: '/login.html' });
+        
+        // Generate a NEW CSRF token immediately after logout
+        const newCsrfToken = generateCsrfToken();
+        res.cookie('csrfToken', newCsrfToken, { 
+            httpOnly: true, 
+            secure: true, 
+            sameSite: 'strict' 
+        });
+        
+        res.json({ 
+            success: true, 
+            redirect: '/login.html',
+            csrfToken: newCsrfToken // Send the new token in response
+        });
     } catch (err) {
         console.error('Logout error:', err);
         res.status(500).json({ error: 'Internal Server Error' });
