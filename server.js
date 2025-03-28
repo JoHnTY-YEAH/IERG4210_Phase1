@@ -24,7 +24,7 @@ const db = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
-});
+}).promise(); // Add .promise() here if you want to use promises everywhere
 
 // Add this right after creating the pool
 db.getConnection((err, connection) => {
@@ -183,44 +183,60 @@ app.post('/login', validateCsrfToken, async (req, res) => {
         const { email, password } = req.body;
         
         // Get a connection from the pool
-        const [users] = await db.query(
-            'SELECT userid, email, password, is_admin FROM users WHERE email = ?', 
-            [email]
-        );
-
-        if (users.length === 0) {
-            return res.status(401).json({ error: 'Invalid credentials' });
-        }
-
-        const user = users[0];
-        const match = await bcrypt.compare(password, user.password);
+        const connection = await db.getConnection();
         
-        if (!match) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+        try {
+            // Execute query using promise interface
+            const [users] = await connection.query(
+                'SELECT userid, email, password, is_admin FROM users WHERE email = ?', 
+                [email]
+            );
+
+            if (users.length === 0) {
+                connection.release();
+                return res.status(401).json({ error: 'Invalid credentials' });
+            }
+
+            const user = users[0];
+            const match = await bcrypt.compare(password, user.password);
+            
+            if (!match) {
+                connection.release();
+                return res.status(401).json({ error: 'Invalid credentials' });
+            }
+
+            const authToken = crypto.randomBytes(32).toString('hex');
+            
+            await connection.query(
+                'UPDATE users SET auth_token = ? WHERE userid = ?',
+                [authToken, user.userid]
+            );
+
+            connection.release();
+
+            res.cookie('authToken', authToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 2 * 24 * 60 * 60 * 1000,
+                path: '/'
+            });
+
+            res.json({ 
+                role: user.is_admin ? 'admin' : 'user',
+                email: user.email
+            });
+
+        } catch (err) {
+            connection.release();
+            console.error('Login error:', err.stack);
+            res.status(500).json({ 
+                error: 'Internal server error',
+                details: process.env.NODE_ENV === 'development' ? err.message : null
+            });
         }
-
-        const authToken = crypto.randomBytes(32).toString('hex');
-        
-        await db.query(
-            'UPDATE users SET auth_token = ? WHERE userid = ?',
-            [authToken, user.userid]
-        );
-
-        res.cookie('authToken', authToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 2 * 24 * 60 * 60 * 1000,
-            path: '/'
-        });
-
-        res.json({ 
-            role: user.is_admin ? 'admin' : 'user',
-            email: user.email
-        });
-
     } catch (err) {
-        console.error('Login error:', err.stack);
+        console.error('Connection error:', err.stack);
         res.status(500).json({ 
             error: 'Internal server error',
             details: process.env.NODE_ENV === 'development' ? err.message : null
