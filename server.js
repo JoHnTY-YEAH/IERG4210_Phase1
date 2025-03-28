@@ -322,6 +322,6 @@ http.createServer((req, res) => {
     console.log('HTTP server redirecting to HTTPS on port 3000');
 });
 
-https.createServer(options, app).listen(443, () => {
-    console.log('HTTPS Server running on port 443');
+https.createServer(options, app).listen(3443, () => {
+    console.log('HTTPS Server running on port 3443');
 });
