@@ -24,7 +24,7 @@ const db = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
-}).promise(); // Add .promise() here if you want to use promises everywhere
+});
 
 // Add this right after creating the pool
 db.getConnection((err, connection) => {
@@ -69,18 +69,20 @@ const validateCsrfToken = (req, res, next) => {
 };
 
 // Authentication Middleware
-const authenticate = (req, res, next) => {
-    const authToken = req.cookies.authToken;
-    if (!authToken) return res.redirect('/login.html');
-    db.query('SELECT * FROM users WHERE auth_token = ?', [authToken], (err, results) => {
-        if (err) {
-            console.error('Auth error:', err);
-            return res.status(500).send('Internal Server Error');
-        }
+const authenticate = async (req, res, next) => {
+    try {
+        const authToken = req.cookies.authToken;
+        if (!authToken) return res.redirect('/login.html');
+        
+        const [results] = await db.query('SELECT * FROM users WHERE auth_token = ?', [authToken]);
         if (!results.length) return res.redirect('/login.html');
+        
         req.user = results[0];
         next();
-    });
+    } catch (err) {
+        console.error('Auth error:', err);
+        res.status(500).send('Internal Server Error');
+    }
 };
 
 const isAdmin = (req, res, next) => {
@@ -96,39 +98,38 @@ app.get('/csrf-token', (req, res) => {
     res.json({ csrfToken: req.cookies.csrfToken });
 });
 
-app.get('/user', (req, res) => {
-    const authToken = req.cookies.authToken;
-    if (!authToken) return res.json({ email: 'Guest', isAdmin: false });
-    db.query('SELECT email, is_admin FROM users WHERE auth_token = ?', [authToken], (err, results) => {
-        if (err) {
-            console.error('User fetch error:', err);
-            return res.status(500).send('Internal Server Error');
-        }
+app.get('/user', async (req, res) => {
+    try {
+        const authToken = req.cookies.authToken;
+        if (!authToken) return res.json({ email: 'Guest', isAdmin: false });
+        
+        const [results] = await db.query('SELECT email, is_admin FROM users WHERE auth_token = ?', [authToken]);
         if (!results.length) return res.json({ email: 'Guest', isAdmin: false });
+        
         res.json({ email: results[0].email, isAdmin: results[0].is_admin });
-    });
+    } catch (err) {
+        console.error('User fetch error:', err);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
 app.get('/login.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
 });
 
-app.get('/categories', (req, res) => {
-    db.query('SELECT * FROM categories', (err, results) => {
-        if (err) {
-            console.error('Categories error:', err);
-            return res.status(500).send('Internal Server Error');
-        }
+app.get('/categories', async (req, res) => {
+    try {
+        const [results] = await db.query('SELECT * FROM categories');
         res.json(results.map(row => ({ catid: row.catid, name: escapeHtml(row.name) })));
-    });
+    } catch (err) {
+        console.error('Categories error:', err);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
-app.get('/products', (req, res) => {
-    db.query('SELECT * FROM products', (err, results) => {
-        if (err) {
-            console.error('Products error:', err);
-            return res.status(500).send('Internal Server Error');
-        }
+app.get('/products', async (req, res) => {
+    try {
+        const [results] = await db.query('SELECT * FROM products');
         res.json(results.map(row => ({
             pid: row.pid,
             catid: row.catid,
@@ -138,16 +139,15 @@ app.get('/products', (req, res) => {
             image: row.image,
             thumbnail: row.thumbnail
         })));
-    });
+    } catch (err) {
+        console.error('Products error:', err);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
-app.get('/products/:catid', (req, res) => {
-    const sql = 'SELECT * FROM products WHERE catid = ?';
-    db.query(sql, [req.params.catid], (err, results) => {
-        if (err) {
-            console.error('Products by catid error:', err);
-            return res.status(500).send('Internal Server Error');
-        }
+app.get('/products/:catid', async (req, res) => {
+    try {
+        const [results] = await db.query('SELECT * FROM products WHERE catid = ?', [req.params.catid]);
         res.json(results.map(row => ({
             pid: row.pid,
             catid: row.catid,
@@ -157,16 +157,15 @@ app.get('/products/:catid', (req, res) => {
             image: row.image,
             thumbnail: row.thumbnail
         })));
-    });
+    } catch (err) {
+        console.error('Products by catid error:', err);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
-app.get('/product/:pid', (req, res) => {
-    const sql = 'SELECT * FROM products WHERE pid = ?';
-    db.query(sql, [req.params.pid], (err, results) => {
-        if (err) {
-            console.error('Product error:', err);
-            return res.status(500).send('Internal Server Error');
-        }
+app.get('/product/:pid', async (req, res) => {
+    try {
+        const [results] = await db.query('SELECT * FROM products WHERE pid = ?', [req.params.pid]);
         const product = results[0] || {};
         res.json({
             pid: product.pid,
@@ -175,7 +174,10 @@ app.get('/product/:pid', (req, res) => {
             description: escapeHtml(product.description || ''),
             image: product.image || ''
         });
-    });
+    } catch (err) {
+        console.error('Product error:', err);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
 app.post('/login', validateCsrfToken, async (req, res) => {
@@ -244,42 +246,38 @@ app.post('/login', validateCsrfToken, async (req, res) => {
     }
 });
 
-app.post('/logout', validateCsrfToken, authenticate, (req, res) => {
-    db.query('UPDATE users SET auth_token = NULL WHERE userid = ?', [req.user.userid], (err) => {
-        if (err) {
-            console.error('Logout error:', err);
-            return res.status(500).send('Internal Server Error');
-        }
+app.post('/logout', validateCsrfToken, authenticate, async (req, res) => {
+    try {
+        await db.query('UPDATE users SET auth_token = NULL WHERE userid = ?', [req.user.userid]);
         res.clearCookie('authToken');
         res.clearCookie('csrfToken');
         res.redirect('/login.html');
-    });
+    } catch (err) {
+        console.error('Logout error:', err);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
-app.post('/change-password', validateCsrfToken, authenticate, (req, res) => {
-    const { currentPassword, newPassword } = req.body;
-    if (!currentPassword || !newPassword || newPassword.length < 8) {
-        return res.status(400).send('Invalid input: New password must be at least 8 characters');
-    }
+app.post('/change-password', validateCsrfToken, authenticate, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        if (!currentPassword || !newPassword || newPassword.length < 8) {
+            return res.status(400).send('Invalid input: New password must be at least 8 characters');
+        }
 
-    bcrypt.compare(currentPassword, req.user.password, (err, match) => {
-        if (err || !match) return res.status(401).send('Current password incorrect');
-        bcrypt.hash(newPassword, 10, (err, hash) => {
-            if (err) {
-                console.error('Hash error:', err);
-                return res.status(500).send('Internal Server Error');
-            }
-            db.query('UPDATE users SET password = ?, auth_token = NULL WHERE userid = ?', [hash, req.user.userid], (err) => {
-                if (err) {
-                    console.error('Password update error:', err);
-                    return res.status(500).send('Internal Server Error');
-                }
-                res.clearCookie('authToken');
-                res.clearCookie('csrfToken');
-                res.redirect('/login.html');
-            });
-        });
-    });
+        const match = await bcrypt.compare(currentPassword, req.user.password);
+        if (!match) return res.status(401).send('Current password incorrect');
+        
+        const hash = await bcrypt.hash(newPassword, 10);
+        await db.query('UPDATE users SET password = ?, auth_token = NULL WHERE userid = ?', [hash, req.user.userid]);
+        
+        res.clearCookie('authToken');
+        res.clearCookie('csrfToken');
+        res.redirect('/login.html');
+    } catch (err) {
+        console.error('Password change error:', err);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
 app.post('/add-product', validateCsrfToken, authenticate, isAdmin, upload.single('image'), (req, res) => {
