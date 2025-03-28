@@ -16,24 +16,32 @@ dotenv.config();
 const app = express();
 const upload = multer({ dest: 'uploads/', limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB limit
 
-// MySQL Connection
-const db = mysql.createConnection({
+// With this:
+const db = mysql.createPool({
+    connectionLimit: 10,
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'shop_user',
     password: process.env.DB_PASSWORD || 'Fd&5cb4VZ',
     database: process.env.DB_NAME || 'shopping_db'
 });
 
-db.connect((err) => {
+// Add this right after creating the pool
+db.getConnection((err, connection) => {
     if (err) {
-        console.error('MySQL connection failed:', err);
+        console.error('Database connection failed:', err);
         process.exit(1);
     }
-    console.log('MySQL connected');
+    console.log('Database connected successfully');
+    connection.release();
 });
 
 // Middleware
-app.use(cors({ origin: 'https://ierg4210.koreacentral.cloudapp.azure.com', credentials: true }));
+app.use(cors({
+    origin: 'https://ierg4210.koreacentral.cloudapp.azure.com',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token']
+}));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -170,54 +178,41 @@ app.get('/product/:pid', (req, res) => {
 });
 
 app.post('/login', validateCsrfToken, async (req, res) => {
+    let connection;
     try {
-        console.log('--- NEW LOGIN ATTEMPT ---');
-        console.log('Request body:', req.body);
-
+        connection = await db.promise().getConnection();
+        
         const { email, password } = req.body;
         
-        // Debug: Check if bcrypt is working
-        const testHash = await bcrypt.hash('test', 10);
-        console.log('BCrypt test hash:', testHash);
-        
-        const [users] = await db.promise().query(
+        const [users] = await connection.query(
             'SELECT userid, email, password, is_admin FROM users WHERE email = ?', 
             [email]
         );
-        console.log('User query results:', users);
 
         if (users.length === 0) {
-            console.log('No user found');
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
         const user = users[0];
-        console.log('Found user:', user.email);
-        console.log('Stored hash:', user.password);
-        
         const match = await bcrypt.compare(password, user.password);
-        console.log('Password match result:', match);
         
         if (!match) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
         const authToken = crypto.randomBytes(32).toString('hex');
-        console.log('Generated auth token:', authToken);
         
-        await db.promise().query(
+        await connection.query(
             'UPDATE users SET auth_token = ? WHERE userid = ?',
             [authToken, user.userid]
         );
-        console.log('Token updated in database');
 
         res.cookie('authToken', authToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: false, // Set to false for testing if not using HTTPS
+            sameSite: 'lax', // More lenient for testing
             maxAge: 2 * 24 * 60 * 60 * 1000
         });
-        console.log('Cookie set successfully');
 
         res.json({ 
             role: user.is_admin ? 'admin' : 'user',
@@ -225,12 +220,13 @@ app.post('/login', validateCsrfToken, async (req, res) => {
         });
 
     } catch (err) {
-        console.error('FULL LOGIN ERROR:', err);
-        console.error('Error stack:', err.stack);
+        console.error('Login error:', err.stack);
         res.status(500).json({ 
             error: 'Internal server error',
             details: process.env.NODE_ENV === 'development' ? err.message : null
         });
+    } finally {
+        if (connection) connection.release();
     }
 });
 
