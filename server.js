@@ -11,7 +11,7 @@ const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 const crypto = require('crypto');
 const https = require('https');
-const http = require('http'); // Added for HTTP redirect
+const http = require('http');
 const fs = require('fs');
 
 dotenv.config();
@@ -29,7 +29,7 @@ app.use(express.static(__dirname));
 const db = mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'shop_user',
-    password: process.env.DB_PASSWORD || 'Fd&5cb4VZ',
+    password: process.ctrl + Cenv.DB_PASSWORD || 'Fd&5cb4VZ',
     database: process.env.DB_NAME || 'shopping_db'
 });
 
@@ -232,8 +232,8 @@ app.delete('/delete-category/:catid', authenticate, validateCsrfToken, (req, res
 
 app.post('/login', validateCsrfToken, (req, res) => {
     const { email, password } = req.body;
-    const sanitizedEmail = sanitizeInput(email); // Added sanitization
-    const sanitizedPassword = sanitizeInput(password); // Added sanitization
+    const sanitizedEmail = sanitizeInput(email);
+    const sanitizedPassword = sanitizeInput(password);
     
     if (!sanitizedEmail.match(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/) || sanitizedPassword.length < 8 || sanitizedPassword.length > 50) {
         return res.json({ success: false });
@@ -249,7 +249,7 @@ app.post('/login', validateCsrfToken, (req, res) => {
             const token = crypto.randomBytes(32).toString('hex');
             res.cookie('authToken', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production', // Secure only in production (HTTPS)
+                secure: true, // Changed to true unconditionally since HTTPS is enforced
                 maxAge: 1000 * 60 * 60 * 24 * 2, // 2 days
                 sameSite: 'strict'
             });
@@ -282,8 +282,8 @@ app.get('/user', (req, res) => {
 
 app.post('/change-password', authenticate, async (req, res) => {
     const { current, newPass } = req.body;
-    const sanitizedCurrent = sanitizeInput(current); // Added sanitization
-    const sanitizedNewPass = sanitizeInput(newPass); // Added sanitization
+    const sanitizedCurrent = sanitizeInput(current);
+    const sanitizedNewPass = sanitizeInput(newPass);
     
     if (sanitizedNewPass.length < 8 || sanitizedNewPass.length > 50) {
         return res.status(400).send('New password must be 8-50 characters');
@@ -301,21 +301,19 @@ app.post('/change-password', authenticate, async (req, res) => {
     }
 });
 
-// HTTPS options with strong ciphers
 const options = {
     key: fs.readFileSync('/etc/letsencrypt/live/20.249.188.8/privkey.pem'),
     cert: fs.readFileSync('/etc/letsencrypt/live/20.249.188.8/fullchain.pem'),
     ciphers: [
         'ECDHE-RSA-AES256-GCM-SHA384',
         'ECDHE-RSA-AES128-GCM-SHA256',
-        '!RC4', // Disable weak ciphers
+        '!RC4',
         '!MD5',
         '!DES'
     ].join(':'),
     honorCipherOrder: true
 };
 
-// HTTP server to redirect to HTTPS
 http.createServer((req, res) => {
     res.writeHead(301, { Location: `https://20.249.188.8:443${req.url}` });
     res.end();
@@ -323,7 +321,6 @@ http.createServer((req, res) => {
     console.log('HTTP server redirecting to HTTPS on port 3000');
 });
 
-// HTTPS server
 https.createServer(options, app).listen(443, () => {
     console.log('HTTPS server started on port 443');
 });
