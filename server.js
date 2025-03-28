@@ -171,6 +171,7 @@ app.get('/product/:pid', (req, res) => {
 
 app.post('/login', validateCsrfToken, (req, res) => {
     const { email, password } = req.body;
+    console.log(`Login attempt: ${email}`);
     if (!email || !password) return res.status(400).send('Email and password required');
 
     db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
@@ -178,11 +179,23 @@ app.post('/login', validateCsrfToken, (req, res) => {
             console.error('Login error:', err);
             return res.status(500).send('Internal Server Error');
         }
-        if (!results.length) return res.status(401).send('Invalid credentials');
+        if (!results.length) {
+            console.log(`No user found for email: ${email}`);
+            return res.status(401).send('Invalid credentials');
+        }
         const user = results[0];
+        console.log(`User found: ${user.email}, is_admin: ${user.is_admin}`);
 
         bcrypt.compare(password, user.password, (err, match) => {
-            if (err || !match) return res.status(401).send('Invalid credentials');
+            if (err) {
+                console.error('Bcrypt error:', err);
+                return res.status(401).send('Invalid credentials');
+            }
+            if (!match) {
+                console.log(`Password mismatch for ${email}`);
+                return res.status(401).send('Invalid credentials');
+            }
+            console.log(`Password matched for ${email}`);
 
             const authToken = crypto.randomBytes(32).toString('hex');
             db.query('UPDATE users SET auth_token = ? WHERE userid = ?', [authToken, user.userid], (err) => {
@@ -193,7 +206,7 @@ app.post('/login', validateCsrfToken, (req, res) => {
                 res.cookie('authToken', authToken, {
                     httpOnly: true,
                     secure: true,
-                    maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
+                    maxAge: 2 * 24 * 60 * 60 * 1000,
                     sameSite: 'strict'
                 });
                 res.json({ role: user.is_admin ? 'admin' : 'user' });
