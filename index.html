@@ -47,7 +47,7 @@
     <script src="cart.js"></script>
     <script nonce="">
         let nonce = '';
-        fetch('http://20.249.188.8:3000/csrf-token')
+        fetch('https://ierg4210.koreacentral.cloudapp.azure.com:443/csrf-token')
             .then(response => response.json())
             .then(data => {
                 nonce = data.token;

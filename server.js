@@ -13,6 +13,7 @@ const crypto = require('crypto');
 const https = require('https');
 const http = require('http');
 const fs = require('fs');
+const isProduction = process.env.NODE_ENV === 'production';
 
 dotenv.config();
 
@@ -302,8 +303,8 @@ app.post('/change-password', authenticate, async (req, res) => {
 });
 
 const options = {
-    key: fs.readFileSync('/etc/letsencrypt/live/20.249.188.8/privkey.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/20.249.188.8/fullchain.pem'),
+    key: fs.readFileSync('/etc/letsencrypt/live/ierg4210.koreacentral.cloudapp.azure.com/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/ierg4210.koreacentral.cloudapp.azure.com/fullchain.pem'),
     ciphers: [
         'ECDHE-RSA-AES256-GCM-SHA384',
         'ECDHE-RSA-AES128-GCM-SHA256',
@@ -315,16 +316,12 @@ const options = {
 };
 
 http.createServer((req, res) => {
-    res.writeHead(301, { Location: `https://20.249.188.8:443${req.url}` });
+    res.writeHead(301, { Location: `https://ierg4210.koreacentral.cloudapp.azure.com:443${req.url}` });
     res.end();
 }).listen(3000, () => {
     console.log('HTTP server redirecting to HTTPS on port 3000');
 });
 
-// In server.js, ensure consistent domain usage
-https.createServer({
-    key: fs.readFileSync('/etc/letsencrypt/live/ierg4210.koreacentral.cloudapp.azure.com/privkey.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/ierg4210.koreacentral.cloudapp.azure.com/fullchain.pem')
-}, app).listen(443, () => {
+https.createServer(options, app).listen(443, () => {
     console.log('HTTPS Server running on port 443');
 });

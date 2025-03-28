@@ -43,21 +43,21 @@
     <script src="cart.js"></script>
     <script nonce="">
         let nonce = '';
-        fetch('http://20.249.188.8:3000/csrf-token')
+        fetch('https://ierg4210.koreacentral.cloudapp.azure.com:443/csrf-token')
             .then(response => response.json())
             .then(data => {
                 nonce = data.token;
                 document.querySelectorAll('script[nonce=""]').forEach(script => script.nonce = nonce);
             });
-
+    
         function escapeHtml(unsafe) {
             return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
-
+    
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             let pid = urlParams.get('pid') || '1';
-            fetch(`http://20.249.188.8:3000/product/${pid}`)
+            fetch(`https://ierg4210.koreacentral.cloudapp.azure.com:443/product/${pid}`)
                 .then(response => response.json())
                 .then(product => {
                     if (product) {

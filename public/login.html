@@ -19,7 +19,7 @@
     <div id="error"></div>
     <script nonce="">
         let nonce = '';
-        fetch('http://20.249.188.8:3000/csrf-token')
+        fetch('https://ierg4210.koreacentral.cloudapp.azure.com:443/csrf-token')
             .then(response => response.json())
             .then(data => {
                 nonce = data.token;
@@ -27,7 +27,7 @@
                 document.querySelectorAll('script[nonce=""]').forEach(script => script.nonce = nonce);
             })
             .catch(() => document.getElementById('error').textContent = 'Error loading CSRF token');
-
+    
         document.getElementById('login-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
@@ -42,16 +42,16 @@
                 document.getElementById('error').textContent = 'Password must be 8-50 characters';
                 return;
             }
-
+    
             const formData = new FormData(e.target);
-            fetch('http://20.249.188.8:3000/login', {
+            fetch('https://ierg4210.koreacentral.cloudapp.azure.com:443/login', {
                 method: 'POST',
                 body: formData
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    window.location.href = data.is_admin ? 'http://20.249.188.8:3000/admin.html' : 'http://20.249.188.8:3000/index.html';
+                    window.location.href = data.is_admin ? 'https://ierg4210.koreacentral.cloudapp.azure.com:443/admin.html' : 'https://ierg4210.koreacentral.cloudapp.azure.com:443/index.html';
                 } else {
                     document.getElementById('error').textContent = 'Invalid email or password';
                 }

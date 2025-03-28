@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
     function escapeHtml(unsafe) {
-        return unsafe.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, "\"").replace(/'/g, "'");
+        return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
   
     if (document.getElementById('category-select')) {
-        fetch('http://20.249.188.8:3000/categories')
+        fetch('https://ierg4210.koreacentral.cloudapp.azure.com:443/categories')
             .then(response => response.json())
             .then(categories => {
-                const categorySelect = document.getElementById('category-select');
+                const categorySelect = Ascending = document.getElementById('category-select');
                 categories.forEach(category => {
                     const option = document.createElement('option');
                     option.value = category.catid;
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   
     function loadProducts(catid = null) {
-        const url = catid ? `http://20.249.188.8:3000/products/${catid}` : 'http://20.249.188.8:3000/products';
+        const url = catid ? `https://ierg4210.koreacentral.cloudapp.azure.com:443/products/${catid}` : 'https://ierg4210.koreacentral.cloudapp.azure.com:443/products';
         fetch(url)
             .then(response => response.json())
             .then(products => {
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', (event) => {
         if (event.target.classList.contains('add-to-cart')) {
             const productId = event.target.getAttribute('data-pid');
-            fetch(`http://20.249.188.8:3000/product/${productId}`)
+            fetch(`https://ierg4210.koreacentral.cloudapp.azure.com:443/product/${productId}`)
                 .then(response => response.json())
                 .then(product => {
                     let cart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.close-cart').addEventListener('click', () => shoppingCart.classList.remove('visible'));
   
     updateCartUI();
-    fetch('http://20.249.188.8:3000/user')
+    fetch('https://ierg4210.koreacentral.cloudapp.azure.com:443/user')
         .then(res => res.json())
         .then(data => document.getElementById('user-name').textContent = data.email || 'Guest');
-  });
+});

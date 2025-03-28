@@ -53,7 +53,7 @@
 
     <script nonce="">
         let nonce = '';
-        fetch('https://20.249.188.8:443/csrf-token')
+        fetch('https://ierg4210.koreacentral.cloudapp.azure.com:443/csrf-token')
             .then(res => res.json())
             .then(data => {
                 nonce = data.token;
@@ -69,7 +69,7 @@
         }
 
         function loadCategories() {
-            fetch('https://20.249.188.8:443/categories')
+            fetch('https://ierg4210.koreacentral.cloudapp.azure.com:443/categories')
                 .then(response => response.json())
                 .then(categories => {
                     const categorySelect = document.getElementById('category');
@@ -84,7 +84,7 @@
         }
 
         function loadProducts() {
-            fetch('https://20.249.188.8:443/products')
+            fetch('https://ierg4210.koreacentral.cloudapp.azure.com:443/products')
                 .then(response => response.json())
                 .then(products => {
                     const productList = document.getElementById('product-list');
@@ -103,7 +103,7 @@
         }
 
         function loadCategoryList() {
-            fetch('https://20.249.188.8:443/categories')
+            fetch('https://ierg4210.koreacentral.cloudapp.azure.com:443/categories')
                 .then(response => response.json())
                 .then(categories => {
                     const categoryList = document.getElementById('category-list');
@@ -131,7 +131,7 @@
             }
             const formData = new FormData(e.target);
             const isUpdate = e.target.dataset.pid;
-            const url = isUpdate ? `https://20.249.188.8:443/update-product/${isUpdate}` : 'https://20.249.188.8:443/add-product';
+            const url = isUpdate ? `https://ierg4210.koreacentral.cloudapp.azure.com:443/update-product/${isUpdate}` : 'https://ierg4210.koreacentral.cloudapp.azure.com:443/add-product';
             fetch(url, { method: isUpdate ? 'PUT' : 'POST', body: formData })
                 .then(response => response.text())
                 .then(message => {
@@ -154,7 +154,7 @@
                 return;
             }
             const isUpdate = e.target.dataset.catid;
-            const url = isUpdate ? `https://20.249.188.8:443/update-category/${isUpdate}` : 'https://20.249.188.8:443/add-category';
+            const url = isUpdate ? `https://ierg4210.koreacentral.cloudapp.azure.com:443/update-category/${isUpdate}` : 'https://ierg4210.koreacentral.cloudapp.azure.com:443/add-category';
             fetch(url, {
                 method: isUpdate ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -178,16 +178,16 @@
             e.preventDefault();
             const current = document.getElementById('current-password').value;
             const newPass = document.getElementById('new-password').value;
-            fetch('https://20.249.188.8:443/change-password', {
+            fetch('https://ierg4210.koreacentral.cloudapp.azure.com:443/change-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ current, newPass })
-            }).then(() => location.href = 'https://20.249.188.8:443/logout');
+            }).then(() => location.href = 'https://ierg4210.koreacentral.cloudapp.azure.com:443/logout');
         });
 
         function deleteProduct(pid) {
             if (confirm('Are you sure?')) {
-                fetch(`https://20.249.188.8:443/delete-product/${pid}`, { method: 'DELETE' })
+                fetch(`https://ierg4210.koreacentral.cloudapp.azure.com:443/delete-product/${pid}`, { method: 'DELETE' })
                     .then(response => response.text())
                     .then(message => {
                         alert(message);
@@ -198,7 +198,7 @@
 
         function deleteCategory(catid) {
             if (confirm('Are you sure?')) {
-                fetch(`https://20.249.188.8:443/delete-category/${catid}`, { method: 'DELETE' })
+                fetch(`https://ierg4210.koreacentral.cloudapp.azure.com:443/delete-category/${catid}`, { method: 'DELETE' })
                     .then(response => response.text())
                     .then(message => {
                         alert(message);
@@ -249,10 +249,10 @@
             loadCategories();
             loadProducts();
             loadCategoryList();
-            fetch('https://20.249.188.8:443/user')
+            fetch('https://ierg4210.koreacentral.cloudapp.azure.com:443/user')
                 .then(res => res.json())
                 .then(data => document.getElementById('user-name').textContent = data.email || 'Guest');
-            fetch('https://20.249.188.8:443/csrf-token')
+            fetch('https://ierg4210.koreacentral.cloudapp.azure.com:443/csrf-token')
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById('csrf-token').value = data.token;
