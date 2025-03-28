@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'nonce-randomNonce'; style-src 'self'; img-src 'self' data:;">
+    <title>Dummy Shopping Website</title>
+    <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body>
+    <header>
+        <h1>Dummy Shopping Website</h1>
+        <nav>
+            <ul>
+                <li><a href="/index.html">Home</a></li>
+                <li><a href="#">Categories</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="/public/admin.html" id="admin-link" style="display: none;">Admin</a></li>
+                <li><a href="/logout" id="logout-link" style="display: none;">Logout</a></li>
+            </ul>
+        </nav>
+        <span id="user-status">Guest</span>
+        <button id="cart-button" class="cart-button">Cart (0)</button>
+    </header>
+
+    <section class="breadcrumb">
+        <p><a href="/index.html">Home</a> > <span id="breadcrumb-category">All Categories</span></p>
+    </section>
+
+    <section class="category-select">
+        <label for="category-select">Select Category:</label>
+        <select id="category-select">
+            <option value="">-- Select a Category --</option>
+        </select>
+    </section>
+
+    <section class="product-list" id="product-list"></section>
+
+    <div id="shopping-cart" class="shopping-cart">
+        <button class="close-cart">×</button>
+        <h3>Shopping Cart</h3>
+        <ul class="cart-items"></ul>
+        <button class="checkout">Checkout</button>
+    </div>
+
+    <footer>
+        <p>© 2025 Dummy Shopping Website</p>
+    </footer>
+
+    <script nonce="randomNonce" src="/cart.js"></script>
+    <script nonce="randomNonce">
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('https://ierg4210.koreacentral.cloudapp.azure.com/user', { credentials: 'include' })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('user-status').textContent = data.email;
+                    if (data.email !== 'Guest') {
+                        document.getElementById('logout-link').style.display = 'inline';
+                        if (data.isAdmin) {
+                            document.getElementById('admin-link').style.display = 'inline';
+                        }
+                    }
+                })
+                .catch(err => console.error('User fetch error:', err));
+
+            if (document.getElementById('category-select')) {
+                fetch('https://ierg4210.koreacentral.cloudapp.azure.com/categories')
+                    .then(response => {
+                        if (!response.ok) throw new Error('Categories fetch failed');
+                        return response.json();
+                    })
+                    .then(categories => {
+                        const categorySelect = document.getElementById('category-select');
+                        categories.forEach(category => {
+                            const option = document.createElement('option');
+                            option.value = category.catid;
+                            option.textContent = category.name;
+                            categorySelect.appendChild(option);
+                        });
+
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const catid = urlParams.get('catid');
+                        if (catid) {
+                            categorySelect.value = catid;
+                            loadProducts(catid);
+                            document.getElementById('breadcrumb-category').textContent = categorySelect.options[categorySelect.selectedIndex].text;
+                        } else {
+                            loadProducts();
+                        }
+                    })
+                    .catch(err => console.error('Categories error:', err));
+            }
+
+            function loadProducts(catid = null) {
+                const url = catid ? `https://ierg4210.koreacentral.cloudapp.azure.com/products/${catid}` : 'https://ierg4210.koreacentral.cloudapp.azure.com/products';
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Products fetch failed');
+                        return response.json();
+                    })
+                    .then(products => {
+                        const productList = document.getElementById('product-list');
+                        productList.innerHTML = '';
+                        products.forEach(product => {
+                            const productDiv = document.createElement('div');
+                            productDiv.className = 'product';
+                            productDiv.innerHTML = `
+                                <a href="/product.html?pid=${product.pid}">
+                                    <img src="${product.thumbnail || '/images/product' + product.pid + '.jpg'}" alt="${product.name}" class="thumbnail">
+                                    <h3>${product.name}</h3>
+                                </a>
+                                <p>$${product.price}</p>
+                                <button class="add-to-cart" data-pid="${product.pid}" data-name="${product.name}" data-price="${product.price}">Add to Cart</button>
+                            `;
+                            productList.appendChild(productDiv);
+                        });
+                    })
+                    .catch(err => console.error('Products error:', err));
+            }
+
+            document.getElementById('category-select').addEventListener('change', (e) => {
+                const catid = e.target.value;
+                if (catid) {
+                    history.pushState({}, '', `?catid=${catid}`);
+                    loadProducts(catid);
+                    document.getElementById('breadcrumb-category').textContent = e.target.options[e.target.selectedIndex].text;
+                } else {
+                    history.pushState({}, '', '/index.html');
+                    loadProducts();
+                    document.getElementById('breadcrumb-category').textContent = 'All Categories';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

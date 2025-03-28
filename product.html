@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'nonce-randomNonce'; style-src 'self'; img-src 'self' data:;">
+    <title>Product Details</title>
+    <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body>
+    <header>
+        <h1>Dummy Shopping Website</h1>
+        <nav>
+            <ul>
+                <li><a href="/index.html">Home</a></li>
+                <li><a href="#">Categories</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="/public/admin.html" id="admin-link" style="display: none;">Admin</a></li>
+                <li><a href="/logout" id="logout-link" style="display: none;">Logout</a></li>
+            </ul>
+        </nav>
+        <span id="user-status">Guest</span>
+        <button id="cart-button" class="cart-button">Cart (0)</button>
+    </header>
+
+    <section class="product-details">
+        <h2 id="product-name"></h2>
+        <img id="product-image" src="" alt="Product Image">
+        <p id="product-price"></p>
+        <p id="product-description"></p>
+        <button class="add-to-cart" id="add-to-cart">Add to Cart</button>
+        <p><a href="/index.html">Back to Home</a></p>
+    </section>
+
+    <div id="shopping-cart" class="shopping-cart">
+        <button class="close-cart">×</button>
+        <h3>Shopping Cart</h3>
+        <ul class="cart-items"></ul>
+        <button class="checkout">Checkout</button>
+    </div>
+
+    <footer>
+        <p>© 2025 Dummy Shopping Website</p>
+    </footer>
+
+    <script nonce="randomNonce" src="/cart.js"></script>
+    <script nonce="randomNonce">
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('https://ierg4210.koreacentral.cloudapp.azure.com/user', { credentials: 'include' })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('user-status').textContent = data.email;
+                    if (data.email !== 'Guest') {
+                        document.getElementById('logout-link').style.display = 'inline';
+                        if (data.isAdmin) {
+                            document.getElementById('admin-link').style.display = 'inline';
+                        }
+                    }
+                })
+                .catch(err => console.error('User fetch error:', err));
+
+            const urlParams = new URLSearchParams(window.location.search);
+            let pid = urlParams.get('pid') || '1';
+            fetch(`https://ierg4210.koreacentral.cloudapp.azure.com/product/${pid}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Product fetch failed');
+                    return response.json();
+                })
+                .then(product => {
+                    if (product.pid) {
+                        document.getElementById('product-name').textContent = product.name;
+                        document.getElementById('product-image').src = product.image || `/images/product${pid}.jpg`;
+                        document.getElementById('product-price').textContent = `$${product.price}`;
+                        document.getElementById('product-description').textContent = product.description;
+                        const addToCartBtn = document.getElementById('add-to-cart');
+                        addToCartBtn.setAttribute('data-pid', pid);
+                        addToCartBtn.setAttribute('data-name', product.name);
+                        addToCartBtn.setAttribute('data-price', product.price);
+                    } else {
+                        document.getElementById('product-name').textContent = 'Product Not Found';
+                    }
+                })
+                .catch(error => console.error('Product error:', error));
+        });
+    </script>
+</body>
+</html>
