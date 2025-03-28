@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const mysql = require('mysql');
+const mysql = require('mysql2/promise');
 const path = require('path');
 const multer = require('multer');
 const sharp = require('sharp');
@@ -16,13 +16,14 @@ dotenv.config();
 const app = express();
 const upload = multer({ dest: 'uploads/', limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB limit
 
-// With this:
 const db = mysql.createPool({
-    connectionLimit: 10,
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'shop_user',
     password: process.env.DB_PASSWORD || 'Fd&5cb4VZ',
-    database: process.env.DB_NAME || 'shopping_db'
+    database: process.env.DB_NAME || 'shopping_db',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
 // Add this right after creating the pool
@@ -178,13 +179,11 @@ app.get('/product/:pid', (req, res) => {
 });
 
 app.post('/login', validateCsrfToken, async (req, res) => {
-    let connection;
     try {
-        connection = await db.promise().getConnection();
-        
         const { email, password } = req.body;
         
-        const [users] = await connection.query(
+        // Get a connection from the pool
+        const [users] = await db.query(
             'SELECT userid, email, password, is_admin FROM users WHERE email = ?', 
             [email]
         );
@@ -202,16 +201,17 @@ app.post('/login', validateCsrfToken, async (req, res) => {
 
         const authToken = crypto.randomBytes(32).toString('hex');
         
-        await connection.query(
+        await db.query(
             'UPDATE users SET auth_token = ? WHERE userid = ?',
             [authToken, user.userid]
         );
 
         res.cookie('authToken', authToken, {
             httpOnly: true,
-            secure: false, // Set to false for testing if not using HTTPS
-            sameSite: 'lax', // More lenient for testing
-            maxAge: 2 * 24 * 60 * 60 * 1000
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 2 * 24 * 60 * 60 * 1000,
+            path: '/'
         });
 
         res.json({ 
@@ -225,8 +225,6 @@ app.post('/login', validateCsrfToken, async (req, res) => {
             error: 'Internal server error',
             details: process.env.NODE_ENV === 'development' ? err.message : null
         });
-    } finally {
-        if (connection) connection.release();
     }
 });
 
