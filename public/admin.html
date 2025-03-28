@@ -9,7 +9,10 @@
 <body>
     <h1>Admin Panel</h1>
     <span id="user-name">Guest</span>
-    <button onclick="fetch('/logout', {method: 'POST'}).then(() => location.href='/index.html')">Logout</button>
+    <form id="logout-form" style="display:inline;">
+        <input type="hidden" name="csrf-token" id="csrf-token-logout">
+        <button type="submit">Logout</button>
+      </form>
 
     <form id="product-form">
         <h2>Manage Products</h2>

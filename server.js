@@ -44,7 +44,7 @@ function generateNonce() {
 }
 
 app.use((req, res, next) => {
-    res.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self' 'nonce-${generateNonce()}'; style-src 'self'; img-src 'self' data:`);
+    res.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self' 'nonce-${res.locals.nonce}'; style-src 'self'; img-src 'self' data:`);
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     res.locals.nonce = generateNonce();
     next();
