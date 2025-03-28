@@ -57,11 +57,29 @@
         fetch('https://ierg4210.koreacentral.cloudapp.azure.com/user', { credentials: 'include' })
             .then(res => res.json())
             .then(data => {
-                if (data.email === 'Guest' || !data.isAdmin) {
-                    window.location.href = '/login.html';
+                const userStatus = document.getElementById('user-status');
+                const logoutLink = document.getElementById('logout-link');
+                
+                if (data.email !== 'Guest') {
+                    userStatus.textContent = 'Logout';
+                    // Show the actual logout button and hide our status button
+                    logoutLink.style.display = 'inline';
+                    userStatus.style.display = 'none';
+                    
+                    // Admin-specific handling
+                    if (data.isAdmin && document.getElementById('admin-link')) {
+                        document.getElementById('admin-link').style.display = 'inline';
+                    }
+                } else {
+                    userStatus.textContent = 'Login';
+                    userStatus.style.display = 'inline';
+                    logoutLink.style.display = 'none';
+                    
+                    // Login redirect
+                    userStatus.onclick = () => window.location.href = '/login.html';
                 }
             })
-            .catch(err => console.error('Auth check error:', err));
+            .catch(err => console.error('User fetch error:', err));
 
         fetch('https://ierg4210.koreacentral.cloudapp.azure.com/csrf-token', { credentials: 'include' })
             .then(res => res.json())

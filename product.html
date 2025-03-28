@@ -60,16 +60,25 @@
                 .then(res => res.json())
                 .then(data => {
                     const userStatus = document.getElementById('user-status');
-                    userStatus.textContent = data.email;
+                    const logoutLink = document.getElementById('logout-link');
+                    
                     if (data.email !== 'Guest') {
-                        document.getElementById('logout-link').style.display = 'inline';
-                        if (data.isAdmin) {
+                        userStatus.textContent = 'Logout';
+                        // Show the actual logout button and hide our status button
+                        logoutLink.style.display = 'inline';
+                        userStatus.style.display = 'none';
+                        
+                        // Admin-specific handling
+                        if (data.isAdmin && document.getElementById('admin-link')) {
                             document.getElementById('admin-link').style.display = 'inline';
                         }
                     } else {
-                        userStatus.addEventListener('click', () => {
-                            window.location.href = '/login.html';
-                        });
+                        userStatus.textContent = 'Login';
+                        userStatus.style.display = 'inline';
+                        logoutLink.style.display = 'none';
+                        
+                        // Login redirect
+                        userStatus.onclick = () => window.location.href = '/login.html';
                     }
                 })
                 .catch(err => console.error('User fetch error:', err));
