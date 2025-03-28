@@ -169,76 +169,60 @@ app.get('/product/:pid', (req, res) => {
     });
 });
 
-app.post('/login', validateCsrfToken, (req, res) => {
-    // 1. Input Sanitization (XSS/Injection Protection)
-    const email = sanitizeHtml(req.body.email, { 
-        allowedTags: [], 
-        allowedAttributes: {} 
-    }).trim();
-    const password = sanitizeHtml(req.body.password, {
-        allowedTags: [],
-        allowedAttributes: {}
-    }).trim();
-
-    if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password required' });
-    }
-
-    // 2. Parameterized Query (SQL Injection Protection)
-    db.query(
-        'SELECT userid, email, password, is_admin FROM users WHERE email = ?',
-        [email],
-        (err, results) => {
-            if (err) {
-                console.error('[DB ERROR]', err);
-                return res.status(500).json({ error: 'Internal server error' });
-            }
-
-            if (results.length === 0) {
-                // Generic error (Prevents User Enumeration)
-                return res.status(401).json({ error: 'Invalid credentials' });
-            }
-
-            const user = results[0];
-            
-            // 3. Secure Password Comparison
-            bcrypt.compare(password, user.password, (err, match) => {
-                if (err || !match) {
-                    return res.status(401).json({ error: 'Invalid credentials' });
-                }
-
-                // 4. Generate New Auth Token (Prevents Session Fixation)
-                const authToken = crypto.randomBytes(32).toString('hex');
-                
-                // 5. Update Database with New Token
-                db.query(
-                    'UPDATE users SET auth_token = ? WHERE userid = ?',
-                    [authToken, user.userid],
-                    (err) => {
-                        if (err) {
-                            console.error('[DB ERROR] Token update failed:', err);
-                            return res.status(500).json({ error: 'Internal server error' });
-                        }
-
-                        // 6. Set Secure HTTP-only Cookie
-                        res.cookie('authToken', authToken, {
-                            httpOnly: true,
-                            secure: true, // Requires HTTPS
-                            sameSite: 'strict',
-                            maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days expiry
-                            path: '/'
-                        });
-
-                        // 7. Return Role for Redirect
-                        res.json({ 
-                            role: user.is_admin ? 'admin' : 'user',
-                            email: user.email
-                        });
-                    }
-                );
-            });
+app.post('/login', validateCsrfToken, async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        // Input validation
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Email and password required' });
         }
-    );
+
+        // Database query
+        const [users] = await db.promise().query(
+            'SELECT userid, email, password, is_admin FROM users WHERE email = ?', 
+            [email]
+        );
+
+        if (users.length === 0) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        const user = users[0];
+        
+        // Password comparison
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        // Generate new auth token
+        const authToken = crypto.randomBytes(32).toString('hex');
+        
+        // Update database
+        await db.promise().query(
+            'UPDATE users SET auth_token = ? WHERE userid = ?',
+            [authToken, user.userid]
+        );
+
+        // Set secure cookie
+        res.cookie('authToken', authToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production', // true in production
+            sameSite: 'strict',
+            maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
+            path: '/'
+        });
+
+        res.json({ 
+            role: user.is_admin ? 'admin' : 'user',
+            email: user.email
+        });
+
+    } catch (err) {
+        console.error('Login error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 app.post('/logout', validateCsrfToken, authenticate, (req, res) => {
