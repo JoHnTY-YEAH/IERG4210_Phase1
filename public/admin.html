@@ -35,6 +35,16 @@
         <button type="submit">Add Category</button>
     </form>
 
+    <form id="change-password-form">
+        <h2>Change Password</h2>
+        <input type="hidden" name="csrfToken" id="csrfTokenPass">
+        <label for="current-password">Current Password:</label>
+        <input type="password" id="current-password" name="currentPassword" required><br>
+        <label for="new-password">New Password:</label>
+        <input type="password" id="new-password" name="newPassword" required><br>
+        <button type="submit">Change Password</button>
+    </form>
+
     <h2>Product List</h2>
     <ul id="product-list"></ul>
 
@@ -59,6 +69,7 @@
                 csrfToken = data.csrfToken;
                 document.getElementById('csrfToken').value = csrfToken;
                 document.getElementById('csrfTokenCat').value = csrfToken;
+                document.getElementById('csrfTokenPass').value = csrfToken;
             })
             .catch(err => console.error('CSRF fetch error:', err));
 
@@ -192,6 +203,26 @@
                 .catch(err => console.error('Category form error:', err));
         });
 
+        document.getElementById('change-password-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            fetch('https://ierg4210.koreacentral.cloudapp.azure.com/change-password', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => { throw new Error(text); });
+                    }
+                    // Server redirects to /login.html, no need for client-side redirect
+                })
+                .catch(err => {
+                    console.error('Password change error:', err);
+                    alert('Password change failed: ' + err.message);
+                });
+        });
+
         function deleteProduct(pid) {
             if (confirm('Are you sure?')) {
                 fetch(`https://ierg4210.koreacentral.cloudapp.azure.com/delete-product/${pid}`, {
@@ -276,5 +307,5 @@
             loadCategoryList();
         });
     </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9277fbb6f8ff4c24',t:'MTc0MzE3Mzg4MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

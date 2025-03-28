@@ -16,10 +16,10 @@
                 <li><a href="#">Categories</a></li>
                 <li><a href="#">About</a></li>
                 <li><a href="/public/admin.html" id="admin-link" style="display: none;">Admin</a></li>
-                <li><a href="/logout" id="logout-link" style="display: none;">Logout</a></li>
+                <li><form id="logout-form" method="POST" action="/logout"><button type="submit" id="logout-link" style="display: none;">Logout</button></form></li>
             </ul>
         </nav>
-        <span id="user-status">Guest</span>
+        <button id="user-status" class="user-status">Guest</button>
         <button id="cart-button" class="cart-button">Cart (0)</button>
     </header>
 
@@ -46,15 +46,30 @@
     <script nonce="randomNonce" src="/cart.js"></script>
     <script nonce="randomNonce">
         document.addEventListener('DOMContentLoaded', () => {
+            // Fetch CSRF token for logout form
+            fetch('https://ierg4210.koreacentral.cloudapp.azure.com/csrf-token', { credentials: 'include' })
+                .then(res => res.json())
+                .then(data => {
+                    const logoutForm = document.getElementById('logout-form');
+                    logoutForm.insertAdjacentHTML('afterbegin', `<input type="hidden" name="csrfToken" value="${data.csrfToken}">`);
+                })
+                .catch(err => console.error('CSRF fetch error:', err));
+
+            // Fetch user status
             fetch('https://ierg4210.koreacentral.cloudapp.azure.com/user', { credentials: 'include' })
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById('user-status').textContent = data.email;
+                    const userStatus = document.getElementById('user-status');
+                    userStatus.textContent = data.email;
                     if (data.email !== 'Guest') {
                         document.getElementById('logout-link').style.display = 'inline';
                         if (data.isAdmin) {
                             document.getElementById('admin-link').style.display = 'inline';
                         }
+                    } else {
+                        userStatus.addEventListener('click', () => {
+                            window.location.href = '/login.html';
+                        });
                     }
                 })
                 .catch(err => console.error('User fetch error:', err));
@@ -83,5 +98,5 @@
                 .catch(error => console.error('Product error:', error));
         });
     </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9277fbb67d63677e',t:'MTc0MzE3Mzg4MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

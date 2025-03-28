@@ -419,6 +419,18 @@ header nav ul li a:hover {
   background: #555;
 }
 
+.user-status {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #007bff;
+  padding: 0;
+  font-size: inherit;
+}
+.user-status:hover {
+  text-decoration: underline;
+}
+
 /* Footer */
 footer {
   background-color: #333;

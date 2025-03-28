@@ -202,7 +202,7 @@ app.post('/login', validateCsrfToken, (req, res) => {
     });
 });
 
-app.get('/logout', validateCsrfToken, authenticate, (req, res) => {
+app.post('/logout', validateCsrfToken, authenticate, (req, res) => {
     db.query('UPDATE users SET auth_token = NULL WHERE userid = ?', [req.user.userid], (err) => {
         if (err) {
             console.error('Logout error:', err);
@@ -210,7 +210,7 @@ app.get('/logout', validateCsrfToken, authenticate, (req, res) => {
         }
         res.clearCookie('authToken');
         res.clearCookie('csrfToken');
-        res.redirect('/index.html');
+        res.redirect('/login.html');
     });
 });
 
@@ -234,7 +234,7 @@ app.post('/change-password', validateCsrfToken, authenticate, (req, res) => {
                 }
                 res.clearCookie('authToken');
                 res.clearCookie('csrfToken');
-                res.send('Password changed, please log in again');
+                res.redirect('/login.html');
             });
         });
     });
