@@ -171,51 +171,51 @@ app.get('/product/:pid', (req, res) => {
 
 app.post('/login', validateCsrfToken, async (req, res) => {
     try {
-        console.log('Login request body:', req.body); // Log incoming request
-        
+        console.log('--- NEW LOGIN ATTEMPT ---');
+        console.log('Request body:', req.body);
+
         const { email, password } = req.body;
         
-        if (!email || !password) {
-            console.log('Missing email or password');
-            return res.status(400).json({ error: 'Email and password required' });
-        }
-
-        console.log('Querying database for email:', email);
+        // Debug: Check if bcrypt is working
+        const testHash = await bcrypt.hash('test', 10);
+        console.log('BCrypt test hash:', testHash);
+        
         const [users] = await db.promise().query(
             'SELECT userid, email, password, is_admin FROM users WHERE email = ?', 
             [email]
         );
+        console.log('User query results:', users);
 
         if (users.length === 0) {
-            console.log('No user found for email:', email);
+            console.log('No user found');
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
         const user = users[0];
-        console.log('User found:', user.email);
+        console.log('Found user:', user.email);
+        console.log('Stored hash:', user.password);
         
-        console.log('Comparing passwords...');
         const match = await bcrypt.compare(password, user.password);
+        console.log('Password match result:', match);
+        
         if (!match) {
-            console.log('Password mismatch');
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
         const authToken = crypto.randomBytes(32).toString('hex');
-        console.log('Generated new auth token');
+        console.log('Generated auth token:', authToken);
         
         await db.promise().query(
             'UPDATE users SET auth_token = ? WHERE userid = ?',
             [authToken, user.userid]
         );
-        console.log('Database updated with new token');
+        console.log('Token updated in database');
 
         res.cookie('authToken', authToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 2 * 24 * 60 * 60 * 1000,
-            path: '/'
+            maxAge: 2 * 24 * 60 * 60 * 1000
         });
         console.log('Cookie set successfully');
 
@@ -225,8 +225,12 @@ app.post('/login', validateCsrfToken, async (req, res) => {
         });
 
     } catch (err) {
-        console.error('Login error:', err.stack); // Log full error stack
-        res.status(500).json({ error: 'Internal server error', details: err.message });
+        console.error('FULL LOGIN ERROR:', err);
+        console.error('Error stack:', err.stack);
+        res.status(500).json({ 
+            error: 'Internal server error',
+            details: process.env.NODE_ENV === 'development' ? err.message : null
+        });
     }
 });
 
