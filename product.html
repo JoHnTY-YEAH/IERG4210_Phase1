@@ -61,23 +61,29 @@
                 .then(data => {
                     const userStatus = document.getElementById('user-status');
                     const logoutLink = document.getElementById('logout-link');
+                    const adminLink = document.getElementById('admin-link');
                     
                     if (data.email !== 'Guest') {
                         userStatus.textContent = 'Logout';
-                        // Show the actual logout button and hide our status button
                         logoutLink.style.display = 'inline';
                         userStatus.style.display = 'none';
                         
-                        // Admin-specific handling
-                        if (data.isAdmin && document.getElementById('admin-link')) {
-                            document.getElementById('admin-link').style.display = 'inline';
+                        // Only show admin link if user is admin
+                        if (data.isAdmin && adminLink) {
+                            adminLink.style.display = 'inline';
+                        } else if (adminLink) {
+                            adminLink.style.display = 'none'; // Explicitly hide if not admin
                         }
                     } else {
                         userStatus.textContent = 'Login';
                         userStatus.style.display = 'inline';
                         logoutLink.style.display = 'none';
                         
-                        // Login redirect
+                        // Hide admin link when logged out
+                        if (adminLink) {
+                            adminLink.style.display = 'none';
+                        }
+                        
                         userStatus.onclick = () => window.location.href = '/login.html';
                     }
                 })
