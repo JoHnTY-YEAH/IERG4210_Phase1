@@ -24,12 +24,16 @@
     </header>
 
     <section class="product-details">
-        <h2 id="product-name"></h2>
-        <img id="product-image" src="" alt="Product Image">
-        <p id="product-price"></p>
-        <p id="product-description"></p>
-        <button class="add-to-cart" id="add-to-cart">Add to Cart</button>
-        <p><a href="/index.html">Back to Home</a></p>
+        <div class="product-image-container">
+            <img id="product-image" src="" alt="Product Image" class="product-image">
+        </div>
+        <div class="product-info">
+            <h2 id="product-name"></h2>
+            <p id="product-price" class="price"></p>
+            <p id="product-description" class="description"></p>
+            <button class="add-to-cart" id="add-to-cart">Add to Cart</button>
+            <p class="back-link"><a href="/index.html">Back to Home</a></p>
+        </div>
     </section>
 
     <div id="shopping-cart" class="shopping-cart">
