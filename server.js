@@ -29,7 +29,7 @@ app.use(express.static(__dirname));
 const db = mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'shop_user',
-    password: process.ctrl + Cenv.DB_PASSWORD || 'Fd&5cb4VZ',
+    password: process.env.DB_PASSWORD || 'Fd&5cb4VZ',
     database: process.env.DB_NAME || 'shopping_db'
 });
 
