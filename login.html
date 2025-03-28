@@ -30,6 +30,13 @@
             document.getElementById('login-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
+                // Get a fresh CSRF token if needed
+                if (!document.getElementById('csrfToken').value) {
+                    await fetch('/csrf-token', { credentials: 'include' })
+                        .then(res => res.json())
+                        .then(data => document.getElementById('csrfToken').value = data.csrfToken);
+                }
+                
                 const email = document.getElementById('email').value.trim();
                 const password = document.getElementById('password').value.trim();
                 const csrfToken = document.getElementById('csrfToken').value;

@@ -251,10 +251,11 @@ app.post('/logout', validateCsrfToken, authenticate, async (req, res) => {
         await db.query('UPDATE users SET auth_token = NULL WHERE userid = ?', [req.user.userid]);
         res.clearCookie('authToken');
         res.clearCookie('csrfToken');
-        res.redirect('/login.html');
+        // Return JSON response instead of redirect
+        res.json({ success: true, redirect: '/login.html' });
     } catch (err) {
         console.error('Logout error:', err);
-        res.status(500).send('Internal Server Error');
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
