@@ -27,67 +27,42 @@
             .then(data => document.getElementById('csrfToken').value = data.csrfToken)
             .catch(err => console.error('CSRF fetch error:', err));
 
-            document.addEventListener('DOMContentLoaded', () => {
-                // Function to get fresh CSRF token
-                const getFreshCsrfToken = async () => {
-                    try {
-                        const response = await fetch('/csrf-token', { credentials: 'include' });
-                        if (!response.ok) throw new Error('Failed to get CSRF token');
-                        const data = await response.json();
-                        document.getElementById('csrfToken').value = data.csrfToken;
-                        return data.csrfToken;
-                    } catch (error) {
-                        console.error('CSRF token fetch error:', error);
-                        throw error;
+            document.getElementById('login-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value.trim();
+                const csrfToken = document.getElementById('csrfToken').value;
+
+                try {
+                    const response = await fetch('https://ierg4210.koreacentral.cloudapp.azure.com/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            email,
+                            password,
+                            csrfToken
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Login failed');
                     }
-                };
 
-                // Initialize CSRF token on page load
-                getFreshCsrfToken().catch(error => {
-                    alert('Failed to initialize security token. Please refresh the page.');
-                });
-
-                // Login form submission
-                document.getElementById('login-form').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    
-                    try {
-                        // Get fresh CSRF token before login attempt
-                        const csrfToken = await getFreshCsrfToken();
-                        const email = document.getElementById('email').value.trim();
-                        const password = document.getElementById('password').value.trim();
-
-                        const response = await fetch('/login', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            credentials: 'include',
-                            body: JSON.stringify({
-                                email,
-                                password,
-                                csrfToken
-                            })
-                        });
-
-                        if (!response.ok) {
-                            const error = await response.json();
-                            throw new Error(error.error || 'Login failed');
-                        }
-
-                        const data = await response.json();
-                        if (data.role === 'admin') {
-                            window.location.href = '/public/admin.html';
-                        } else {
-                            window.location.href = '/index.html';
-                        }
-                    } catch (error) {
-                        console.error('Login error:', error);
-                        alert(error.message);
-                        // Refresh CSRF token on error
-                        await getFreshCsrfToken();
+                    const data = await response.json();
+                    if (data.role === 'admin') {
+                        window.location.href = '/public/admin.html';
+                    } else {
+                        window.location.href = '/index.html';
                     }
-                });
+                } catch (error) {
+                    console.error('Login error:', error);
+                    alert(error.message);
+                }
             });
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9277fbb6b88d0c0a',t:'MTc0MzE3Mzg4Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>

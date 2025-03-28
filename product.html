@@ -16,7 +16,7 @@
                 <li><a href="#">Categories</a></li>
                 <li><a href="#">About</a></li>
                 <li><a href="/public/admin.html" id="admin-link" style="display: none;">Admin</a></li>
-                <li><form id="logout-form" method="POST"><button type="submit" id="logout-link" style="display: none;">Logout</button></form></li>
+                <li><form id="logout-form" method="POST" action="/logout"><button type="submit" id="logout-link" style="display: none;">Logout</button></form></li>
             </ul>
         </nav>
         <button id="user-status" class="user-status">Guest</button>
@@ -46,62 +46,17 @@
     <script nonce="randomNonce" src="/cart.js"></script>
     <script nonce="randomNonce">
         document.addEventListener('DOMContentLoaded', () => {
-            // Function to refresh CSRF token
-            const refreshCsrfToken = async () => {
-                try {
-                    const response = await fetch('/csrf-token', { credentials: 'include' });
-                    if (!response.ok) throw new Error('Failed to get CSRF token');
-                    const data = await response.json();
-                    const csrfInputs = document.querySelectorAll('input[name="csrfToken"]');
-                    csrfInputs.forEach(input => {
-                        input.value = data.csrfToken;
-                    });
-                    return data.csrfToken;
-                } catch (error) {
-                    console.error('CSRF token refresh failed:', error);
-                    throw error;
-                }
-            };
+            // Fetch CSRF token for logout form
+            fetch('https://ierg4210.koreacentral.cloudapp.azure.com/csrf-token', { credentials: 'include' })
+                .then(res => res.json())
+                .then(data => {
+                    const logoutForm = document.getElementById('logout-form');
+                    logoutForm.insertAdjacentHTML('afterbegin', `<input type="hidden" name="csrfToken" value="${data.csrfToken}">`);
+                })
+                .catch(err => console.error('CSRF fetch error:', err));
 
-            // Initialize CSRF token
-            refreshCsrfToken().then(token => {
-                // Set up logout form
-                document.getElementById('logout-form').insertAdjacentHTML('afterbegin', 
-                    `<input type="hidden" name="csrfToken" value="${token}">`);
-            }).catch(() => {
-                console.log('CSRF token initialization failed');
-            });
-
-            // Logout form handling
-            document.getElementById('logout-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                try {
-                    const csrfToken = document.querySelector('#logout-form input[name="csrfToken"]').value;
-                    const response = await fetch('/logout', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-Token': csrfToken
-                        },
-                        credentials: 'include'
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Logout failed');
-                    }
-
-                    // Redirect to login page after successful logout
-                    window.location.href = '/login.html';
-                } catch (error) {
-                    console.error('Logout error:', error);
-                    alert('Logout failed. Please try again.');
-                    // Refresh CSRF token on error
-                    await refreshCsrfToken();
-                }
-            });
-
-            // User status check
-            fetch('/user', { credentials: 'include' })
+            // Fetch user status
+            fetch('https://ierg4210.koreacentral.cloudapp.azure.com/user', { credentials: 'include' })
                 .then(res => res.json())
                 .then(data => {
                     const userStatus = document.getElementById('user-status');
@@ -119,10 +74,9 @@
                 })
                 .catch(err => console.error('User fetch error:', err));
 
-            // Load product details
             const urlParams = new URLSearchParams(window.location.search);
-            const pid = urlParams.get('pid') || '1';
-            fetch(`/product/${pid}`)
+            let pid = urlParams.get('pid') || '1';
+            fetch(`https://ierg4210.koreacentral.cloudapp.azure.com/product/${pid}`)
                 .then(response => {
                     if (!response.ok) throw new Error('Product fetch failed');
                     return response.json();
@@ -144,5 +98,5 @@
                 .catch(error => console.error('Product error:', error));
         });
     </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9277fbb67d63677e',t:'MTc0MzE3Mzg4MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
