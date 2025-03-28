@@ -8,9 +8,10 @@
     <link rel="stylesheet" href="/styles/main.css">
 </head>
 <body>
-    <div class="login-container">
-        <h1>Login to Your Account</h1>
-        <form id="login-form">
+    <div class="login-wrapper">
+        <div class="login-container">
+            <h1>Login to Your Account</h1>
+            <form id="login-form">
             <input type="hidden" name="csrfToken" id="csrfToken">
             <label for="email">Email</label>
             <input type="email" id="email" name="email" required placeholder="Enter your email">
@@ -18,8 +19,10 @@
             <input type="password" id="password" name="password" required placeholder="Enter your password">
             <button type="submit">Login</button>
         </form>
-        <p class="back-link"><a href="/index.html">Back to Home</a></p>
+            <p class="back-link"><a href="/index.html">Back to Home</a></p>
+        </div>
     </div>
+</body>
 
     <script nonce="randomNonce">
         fetch('https://ierg4210.koreacentral.cloudapp.azure.com/csrf-token', { credentials: 'include' })

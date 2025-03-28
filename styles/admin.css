@@ -134,6 +134,24 @@ li {
   background-color: #ffffff; /* White background for list items */
 }
 
+/* Admin Back Link */
+.admin-back-link {
+  text-align: center;
+  margin: -15px 0 20px 0;
+}
+
+.admin-back-link a {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.9em;
+  transition: color 0.3s ease;
+}
+
+.admin-back-link a:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   body {
