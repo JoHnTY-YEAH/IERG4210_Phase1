@@ -171,48 +171,53 @@ app.get('/product/:pid', (req, res) => {
 
 app.post('/login', validateCsrfToken, async (req, res) => {
     try {
+        console.log('Login request body:', req.body); // Log incoming request
+        
         const { email, password } = req.body;
         
-        // Input validation
         if (!email || !password) {
+            console.log('Missing email or password');
             return res.status(400).json({ error: 'Email and password required' });
         }
 
-        // Database query
+        console.log('Querying database for email:', email);
         const [users] = await db.promise().query(
             'SELECT userid, email, password, is_admin FROM users WHERE email = ?', 
             [email]
         );
 
         if (users.length === 0) {
+            console.log('No user found for email:', email);
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
         const user = users[0];
+        console.log('User found:', user.email);
         
-        // Password comparison
+        console.log('Comparing passwords...');
         const match = await bcrypt.compare(password, user.password);
         if (!match) {
+            console.log('Password mismatch');
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        // Generate new auth token
         const authToken = crypto.randomBytes(32).toString('hex');
+        console.log('Generated new auth token');
         
-        // Update database
         await db.promise().query(
             'UPDATE users SET auth_token = ? WHERE userid = ?',
             [authToken, user.userid]
         );
+        console.log('Database updated with new token');
 
-        // Set secure cookie
         res.cookie('authToken', authToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // true in production
+            secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
+            maxAge: 2 * 24 * 60 * 60 * 1000,
             path: '/'
         });
+        console.log('Cookie set successfully');
 
         res.json({ 
             role: user.is_admin ? 'admin' : 'user',
@@ -220,8 +225,8 @@ app.post('/login', validateCsrfToken, async (req, res) => {
         });
 
     } catch (err) {
-        console.error('Login error:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error('Login error:', err.stack); // Log full error stack
+        res.status(500).json({ error: 'Internal server error', details: err.message });
     }
 });
 
