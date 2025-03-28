@@ -321,6 +321,7 @@ http.createServer((req, res) => {
     console.log('HTTP server redirecting to HTTPS on port 3000');
 });
 
+// In server.js, ensure consistent domain usage
 https.createServer({
     key: fs.readFileSync('/etc/letsencrypt/live/ierg4210.koreacentral.cloudapp.azure.com/privkey.pem'),
     cert: fs.readFileSync('/etc/letsencrypt/live/ierg4210.koreacentral.cloudapp.azure.com/fullchain.pem')
