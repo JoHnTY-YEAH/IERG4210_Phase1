@@ -8,47 +8,68 @@
 </head>
 <body>
     <h1>Admin Panel</h1>
+    <span id="user-name">Guest</span>
+    <button onclick="fetch('/logout', {method: 'POST'}).then(() => location.href='/index.html')">Logout</button>
 
-    <!-- Form to manage products -->
     <form id="product-form">
         <h2>Manage Products</h2>
+        <input type="hidden" name="csrf-token" id="csrf-token">
         <label for="category">Category:</label>
-        <select id="category" name="category" required>
-            <option value="">-- Select a Category --</option>
-            <!-- Categories will be loaded dynamically -->
-        </select><br>
+        <select id="category" name="category" required></select><br>
         <label for="name">Product Name:</label>
-        <input type="text" id="name" name="name" required><br>
+        <input type="text" id="name" name="name" required maxlength="255" pattern="[A-Za-z0-9\s\-\.,]+" title="Letters, numbers, spaces, and basic punctuation only"><br>
         <label for="price">Price:</label>
-        <input type="number" id="price" name="price" step="0.01" min="0" required><br>
+        <input type="number" id="price" name="price" step="0.01" min="0" max="9999.99" required title="Price between 0 and 9999.99"><br>
         <label for="description">Description:</label>
-        <textarea id="description" name="description" required></textarea><br>
+        <textarea id="description" name="description" required maxlength="1000" title="Description up to 1000 characters"></textarea><br>
         <label for="image">Product Image:</label>
         <input type="file" id="image" name="image" accept="image/jpeg, image/png, image/gif"><br>
         <div id="image-error" class="error"></div>
         <button type="submit">Add Product</button>
     </form>
 
-    <!-- Form to manage categories -->
     <form id="category-form">
         <h2>Manage Categories</h2>
+        <input type="hidden" name="csrf-token" id="csrf-token-cat">
         <label for="category-name">Category Name:</label>
-        <input type="text" id="category-name" name="category-name" required><br>
+        <input type="text" id="category-name" name="category-name" required maxlength="255" pattern="[A-Za-z0-9\s\-\.]+" title="Letters, numbers, spaces, hyphen, and dot only"><br>
         <button type="submit">Add Category</button>
     </form>
 
-    <!-- List of products -->
+    <form id="change-password">
+        <h2>Change Password</h2>
+        <label for="current-password">Current Password:</label>
+        <input type="password" id="current-password" required minlength="8" maxlength="50" title="Password must be 8-50 characters"><br>
+        <label for="new-password">New Password:</label>
+        <input type="password" id="new-password" required minlength="8" maxlength="50" title="Password must be 8-50 characters"><br>
+        <button type="submit">Change Password</button>
+    </form>
+
     <h2>Product List</h2>
     <ul id="product-list"></ul>
 
-    <!-- List of categories -->
     <h2>Category List</h2>
     <ul id="category-list"></ul>
 
-    <script>
-        // Function to load categories dynamically
+    <script nonce="">
+        let nonce = '';
+        fetch('https://20.249.188.8:443/csrf-token')
+            .then(res => res.json())
+            .then(data => {
+                nonce = data.token;
+                document.querySelectorAll('script[nonce=""]').forEach(script => script.nonce = nonce);
+            });
+
+        function sanitizeInput(input) {
+            return input.replace(/[<>"'%;()&+]/g, '');
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
         function loadCategories() {
-            fetch('http://20.249.188.8:3000/categories')
+            fetch('https://20.249.188.8:443/categories')
                 .then(response => response.json())
                 .then(categories => {
                     const categorySelect = document.getElementById('category');
@@ -59,13 +80,11 @@
                         option.textContent = category.name;
                         categorySelect.appendChild(option);
                     });
-                })
-                .catch(error => console.error('Error fetching categories:', error));
+                });
         }
 
-        // Function to load products dynamically
         function loadProducts() {
-            fetch('http://20.249.188.8:3000/products')
+            fetch('https://20.249.188.8:443/products')
                 .then(response => response.json())
                 .then(products => {
                     const productList = document.getElementById('product-list');
@@ -73,20 +92,18 @@
                     products.forEach(product => {
                         const li = document.createElement('li');
                         li.innerHTML = `
-                            ${product.name} - $${product.price}
-                            <a href="../product.html?pid=${product.pid}" target="_blank">View</a>
+                            ${escapeHtml(product.name)} - $${escapeHtml(product.price.toString())}
+                            <a href="../product.html?pid=${escapeHtml(product.pid)}" target="_blank">View</a>
                             <button onclick="deleteProduct(${product.pid})">Delete</button>
-                            <button onclick="editProduct(${product.pid}, '${product.name}', ${product.price}, '${product.description}', ${product.catid})">Edit</button>
+                            <button onclick="editProduct(${product.pid}, '${escapeHtml(product.name)}', ${product.price}, '${escapeHtml(product.description)}', ${product.catid})">Edit</button>
                         `;
                         productList.appendChild(li);
                     });
-                })
-                .catch(error => console.error('Error fetching products:', error));
+                });
         }
 
-        // Function to load category list dynamically
         function loadCategoryList() {
-            fetch('http://20.249.188.8:3000/categories')
+            fetch('https://20.249.188.8:443/categories')
                 .then(response => response.json())
                 .then(categories => {
                     const categoryList = document.getElementById('category-list');
@@ -94,63 +111,52 @@
                     categories.forEach(category => {
                         const li = document.createElement('li');
                         li.innerHTML = `
-                            ${category.name}
+                            ${escapeHtml(category.name)}
                             <button onclick="deleteCategory(${category.catid})">Delete</button>
-                            <button onclick="editCategory(${category.catid}, '${category.name}')">Edit</button>
+                            <button onclick="editCategory(${category.catid}, '${escapeHtml(category.name)}')">Edit</button>
                         `;
                         categoryList.appendChild(li);
                     });
-                })
-                .catch(error => console.error('Error fetching category list:', error));
+                });
         }
 
-        // Handle product form submission (Add or Update)
         document.getElementById('product-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            const imageFile = document.getElementById('image').files[0];
-            const isUpdate = e.target.dataset.pid; // Check if in edit mode
-
-            // Client-side image size validation
-            if (imageFile && imageFile.size > 10 * 1024 * 1024) {
-                document.getElementById('image-error').textContent = 'Image size must be less than 10MB.';
+            const name = sanitizeInput(document.getElementById('name').value);
+            const price = document.getElementById('price').value;
+            const description = sanitizeInput(document.getElementById('description').value);
+            if (!name || isNaN(price) || price < 0 || !description) {
+                alert('Invalid input detected');
                 return;
-            } else {
-                document.getElementById('image-error').textContent = '';
             }
-
-            const url = isUpdate ? `http://20.249.188.8:3000/update-product/${isUpdate}` : 'http://20.249.188.8:3000/add-product';
-            const method = isUpdate ? 'PUT' : 'POST';
-
-            fetch(url, {
-                method: method,
-                body: formData
-            })
-            .then(response => response.text())
-            .then(message => {
-                alert(message);
-                if (isUpdate) {
-                    e.target.innerHTML = e.target.dataset.original; // Revert to add mode
-                    delete e.target.dataset.pid;
-                } else {
-                    e.target.reset(); // Clear form for add mode
-                }
-                loadProducts(); // Reload the product list
-            })
-            .catch(error => console.error('Error:', error));
+            const formData = new FormData(e.target);
+            const isUpdate = e.target.dataset.pid;
+            const url = isUpdate ? `https://20.249.188.8:443/update-product/${isUpdate}` : 'https://20.249.188.8:443/add-product';
+            fetch(url, { method: isUpdate ? 'PUT' : 'POST', body: formData })
+                .then(response => response.text())
+                .then(message => {
+                    alert(message);
+                    if (isUpdate) {
+                        e.target.innerHTML = e.target.dataset.original;
+                        delete e.target.dataset.pid;
+                    } else {
+                        e.target.reset();
+                    }
+                    loadProducts();
+                });
         });
 
-        // Handle category form submission (Add or Update)
         document.getElementById('category-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            const categoryName = document.getElementById('category-name').value;
-            const isUpdate = e.target.dataset.catid; // Check if in edit mode
-
-            const url = isUpdate ? `http://20.249.188.8:3000/update-category/${isUpdate}` : 'http://20.249.188.8:3000/add-category';
-            const method = isUpdate ? 'PUT' : 'POST';
-
+            const categoryName = sanitizeInput(document.getElementById('category-name').value);
+            if (!categoryName) {
+                alert('Invalid category name');
+                return;
+            }
+            const isUpdate = e.target.dataset.catid;
+            const url = isUpdate ? `https://20.249.188.8:443/update-category/${isUpdate}` : 'https://20.249.188.8:443/add-category';
             fetch(url, {
-                method: method,
+                method: isUpdate ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: categoryName })
             })
@@ -158,89 +164,102 @@
             .then(message => {
                 alert(message);
                 if (isUpdate) {
-                    e.target.innerHTML = e.target.dataset.original; // Revert to add mode
+                    e.target.innerHTML = e.target.dataset.original;
                     delete e.target.dataset.catid;
                 } else {
-                    e.target.reset(); // Clear form for add mode
+                    e.target.reset();
                 }
-                loadCategories(); // Reload categories
-                loadCategoryList(); // Reload category list
-            })
-            .catch(error => console.error('Error:', error));
+                loadCategories();
+                loadCategoryList();
+            });
         });
 
-        // Function to delete a product
+        document.getElementById('change-password').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const current = document.getElementById('current-password').value;
+            const newPass = document.getElementById('new-password').value;
+            fetch('https://20.249.188.8:443/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ current, newPass })
+            }).then(() => location.href = 'https://20.249.188.8:443/logout');
+        });
+
         function deleteProduct(pid) {
-            if (confirm('Are you sure you want to delete this product?')) {
-                fetch(`http://20.249.188.8:3000/delete-product/${pid}`, { method: 'DELETE' })
+            if (confirm('Are you sure?')) {
+                fetch(`https://20.249.188.8:443/delete-product/${pid}`, { method: 'DELETE' })
                     .then(response => response.text())
                     .then(message => {
                         alert(message);
-                        loadProducts(); // Reload the product list
-                    })
-                    .catch(error => console.error('Error:', error));
+                        loadProducts();
+                    });
             }
         }
 
-        // Function to delete a category
         function deleteCategory(catid) {
-            if (confirm('Are you sure you want to delete this category?')) {
-                fetch(`http://20.249.188.8:3000/delete-category/${catid}`, { method: 'DELETE' })
+            if (confirm('Are you sure?')) {
+                fetch(`https://20.249.188.8:443/delete-category/${catid}`, { method: 'DELETE' })
                     .then(response => response.text())
                     .then(message => {
                         alert(message);
-                        loadCategories(); // Reload categories
-                        loadCategoryList(); // Reload category list
-                    })
-                    .catch(error => console.error('Error:', error));
+                        loadCategories();
+                        loadCategoryList();
+                    });
             }
         }
 
-        // Function to edit a product
         function editProduct(pid, name, price, description, catid) {
             const form = document.getElementById('product-form');
             form.innerHTML = `
                 <h2>Edit Product</h2>
+                <input type="hidden" name="csrf-token" id="csrf-token">
                 <label for="category">Category:</label>
                 <select id="category" name="category" required></select><br>
                 <label for="name">Product Name:</label>
-                <input type="text" id="name" name="name" value="${name}" required><br>
+                <input type="text" id="name" name="name" value="${escapeHtml(name)}" required maxlength="255" pattern="[A-Za-z0-9\s\-\.,]+" title="Letters, numbers, spaces, and basic punctuation only"><br>
                 <label for="price">Price:</label>
-                <input type="number" id="price" name="price" step="0.01" min="0" value="${price}" required><br>
+                <input type="number" id="price" name="price" step="0.01" min="0" max="9999.99" value="${price}" required title="Price between 0 and 9999.99"><br>
                 <label for="description">Description:</label>
-                <textarea id="description" name="description" required>${description}</textarea><br>
+                <textarea id="description" name="description" required maxlength="1000" title="Description up to 1000 characters">${escapeHtml(description)}</textarea><br>
                 <label for="image">Product Image:</label>
                 <input type="file" id="image" name="image" accept="image/jpeg, image/png, image/gif"><br>
                 <div id="image-error" class="error"></div>
                 <button type="submit">Update Product</button>
             `;
-            form.dataset.pid = pid; // Mark form as in edit mode
-            loadCategories(); // Load categories into dropdown
-            setTimeout(() => document.getElementById('category').value = catid, 100); // Set selected category
+            form.dataset.pid = pid;
+            loadCategories();
+            setTimeout(() => document.getElementById('category').value = catid, 100);
         }
 
-        // Function to edit a category
         function editCategory(catid, name) {
             const form = document.getElementById('category-form');
             form.innerHTML = `
                 <h2>Edit Category</h2>
+                <input type="hidden" name="csrf-token" id="csrf-token-cat">
                 <label for="category-name">Category Name:</label>
-                <input type="text" id="category-name" name="category-name" value="${name}" required><br>
+                <input type="text" id="category-name" name="category-name" value="${escapeHtml(name)}" required maxlength="255" pattern="[A-Za-z0-9\s\-\.]+" title="Letters, numbers, spaces, hyphen, and dot only"><br>
                 <button type="submit">Update Category</button>
             `;
-            form.dataset.catid = catid; // Mark form as in edit mode
+            form.dataset.catid = catid;
         }
 
-        // Initialize page on load
         window.addEventListener('load', () => {
-            // Store original form HTML for reverting after edit
             document.getElementById('product-form').dataset.original = document.getElementById('product-form').innerHTML;
             document.getElementById('category-form').dataset.original = document.getElementById('category-form').innerHTML;
             loadCategories();
             loadProducts();
             loadCategoryList();
+            fetch('https://20.249.188.8:443/user')
+                .then(res => res.json())
+                .then(data => document.getElementById('user-name').textContent = data.email || 'Guest');
+            fetch('https://20.249.188.8:443/csrf-token')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('csrf-token').value = data.token;
+                    document.getElementById('csrf-token-cat').value = data.token;
+                });
         });
     </script>
-    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'91d93726dbd1aff8',t:'MTc0MTUwOTA4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+    <script nonce="">(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92757d2a9843bfe3',t:'MTc0MzE0NzcyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>

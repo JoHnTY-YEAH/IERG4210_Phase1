@@ -6,12 +6,15 @@ project-folder/
 │   └── ... (up to product12.jpg)
 ├── public/
 │   └── admin.html
+│   └── login.html
 ├── styles/
 │   └── admin.css
 │   └── main.css
 ├── uploads/
 ├── .env
 ├── cart.js
+├── hashPassword.js
 ├── index.html
 ├── product.html
-└── server.js
+├── server.js
+└── setup.sql

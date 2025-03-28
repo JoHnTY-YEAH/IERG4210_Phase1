@@ -1,74 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Product Details</title>
-  <link rel="stylesheet" href="styles/main.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details</title>
+    <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-  <header>
-    <h1>Dummy Shopping Website</h1>
-    <nav>
-      <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="#">Categories</a></li>
-        <li><a href="#">About</a></li>
-      </ul>
-    </nav>
-    <button id="cart-button" class="cart-button">Cart (0)</button>
-  </header>
+    <header>
+        <h1>Dummy Shopping Website</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#">Categories</a></li>
+                <li><a href="#">About</a></li>
+            </ul>
+        </nav>
+        <span id="user-name">Guest</span>
+        <button id="cart-button" class="cart-button">Cart (0)</button>
+    </header>
 
-  <section class="product-details">
-    <h2 id="product-name"></h2>
-    <img id="product-image" src="" alt="Product Image">
-    <p id="product-price"></p>
-    <p id="product-description"></p>
-    <button class="add-to-cart" id="add-to-cart">Add to Cart</button>
-    <p><a href="index.html">Back to Home</a></p>
-  </section>
+    <section class="product-details">
+        <h2 id="product-name"></h2>
+        <img id="product-image" src="" alt="Product Image">
+        <p id="product-price"></p>
+        <p id="product-description"></p>
+        <button class="add-to-cart" id="add-to-cart">Add to Cart</button>
+        <p><a href="index.html">Back to Home</a></p>
+    </section>
 
-  <div id="shopping-cart" class="shopping-cart">
-    <button class="close-cart">×</button>
-    <h3>Shopping Cart</h3>
-    <ul class="cart-items"></ul>
-    <button class="checkout">Checkout</button>
-  </div>
+    <div id="shopping-cart" class="shopping-cart">
+        <button class="close-cart">×</button>
+        <h3>Shopping Cart</h3>
+        <ul class="cart-items"></ul>
+        <button class="checkout">Checkout</button>
+    </div>
 
-  <footer>
-    <p>© 2025 Dummy Shopping Website</p>
-  </footer>
+    <footer>
+        <p>© 2025 Dummy Shopping Website</p>
+    </footer>
 
-  <script src="cart.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Extract pid from URL query string or pathname
-      const urlParams = new URLSearchParams(window.location.search);
-      let pid = urlParams.get('pid');
-      if (!pid) {
-        pid = window.location.pathname.split('/').pop().replace('product', '').replace('.html', '') || '1'; // Default to 1 if not found
-      }
-      fetch(`http://20.249.188.8:3000/product/${pid}`)
-        .then(response => response.json())
-        .then(product => {
-          if (product) {
-            document.getElementById('product-name').textContent = product.name || 'Product Not Found';
-            document.getElementById('product-image').src = product.image || `images/product${pid}.jpg`;
-            document.getElementById('product-price').textContent = `$${product.price || 'N/A'}`;
-            document.getElementById('product-description').textContent = product.description || 'No description available.';
-            const addToCartBtn = document.getElementById('add-to-cart');
-            addToCartBtn.setAttribute('data-pid', pid);
-            addToCartBtn.setAttribute('data-name', product.name);
-            addToCartBtn.setAttribute('data-price', product.price);
-          } else {
-            document.getElementById('product-name').textContent = 'Product Not Found';
-            document.getElementById('product-image').src = '';
-            document.getElementById('product-price').textContent = '';
-            document.getElementById('product-description').textContent = '';
-          }
-        })
-        .catch(error => console.error('Error fetching product:', error));
-    });
-  </script>
+    <script src="cart.js"></script>
+    <script nonce="">
+        let nonce = '';
+        fetch('http://20.249.188.8:3000/csrf-token')
+            .then(response => response.json())
+            .then(data => {
+                nonce = data.token;
+                document.querySelectorAll('script[nonce=""]').forEach(script => script.nonce = nonce);
+            });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            let pid = urlParams.get('pid') || '1';
+            fetch(`http://20.249.188.8:3000/product/${pid}`)
+                .then(response => response.json())
+                .then(product => {
+                    if (product) {
+                        document.getElementById('product-name').textContent = product.name || 'Product Not Found';
+                        document.getElementById('product-image').src = product.image || `images/product${pid}.jpg`;
+                        document.getElementById('product-price').textContent = `$${product.price || 'N/A'}`;
+                        document.getElementById('product-description').textContent = product.description || 'No description available.';
+                        const addToCartBtn = document.getElementById('add-to-cart');
+                        addToCartBtn.setAttribute('data-pid', pid);
+                        addToCartBtn.setAttribute('data-name', product.name);
+                        addToCartBtn.setAttribute('data-price', product.price);
+                    }
+                });
+        });
+    </script>
+<script nonce="">(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92757d2a9af0071f',t:'MTc0MzE0NzcyOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
