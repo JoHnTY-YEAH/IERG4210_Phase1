@@ -38,5 +38,5 @@ INSERT INTO products (catid, name, price, description, image, thumbnail) VALUES
 (3, 'Product 12', 129.99, 'Eau De Parfume, Black Sakura, Unveil your signature scent with timeless elegance in every drop', '/images/product12.jpg', '/images/product12.jpg');
 
 INSERT INTO users (email, password, is_admin) VALUES
-('admin@example.com', '$2b$10$s.1aMYIxhpvX/NdNDrgTyeBFFrTPuogLw/yGW6vidoP1cLKV.2L7q', TRUE),
-('user@example.com', '$2b$10$mqwVsfnKQnKunjtv3FKOVOjA.D4IXAlKppujpO8UQARrdxhLZv4KW', FALSE);
+('admin@example.com', '$2b$10$Ndwr9eo190tkFcXYHrFAaeipj76aGoYtp8gRu9vi1rd7Gd/W8Bhx.', TRUE),
+('user@example.com', '$2b$10$7pG43mC8YO2Qe7s1fgxFSe3wM1HM16i3.T9HFWzdZk0cF9fg6wPjG', FALSE);

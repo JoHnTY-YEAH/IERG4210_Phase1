@@ -171,46 +171,62 @@ app.get('/product/:pid', (req, res) => {
 
 app.post('/login', validateCsrfToken, (req, res) => {
     const { email, password } = req.body;
-    console.log(`Login attempt: ${email}`);
-    if (!email || !password) return res.status(400).send('Email and password required');
+    console.log('[DEBUG] Login attempt:', { email, password }); // Log raw input
+
+    if (!email || !password) {
+        console.log('[ERROR] Email or password missing');
+        return res.status(400).send('Email and password required');
+    }
 
     db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
         if (err) {
-            console.error('Login error:', err);
+            console.error('[DB ERROR]', err);
             return res.status(500).send('Internal Server Error');
         }
         if (!results.length) {
-            console.log(`No user found for email: ${email}`);
+            console.log('[AUTH FAIL] No user found for email:', email);
             return res.status(401).send('Invalid credentials');
         }
+
         const user = results[0];
-        console.log(`User found: ${user.email}, is_admin: ${user.is_admin}`);
+        console.log('[DEBUG] User found:', { 
+            email: user.email, 
+            storedHash: user.password 
+        });
 
         bcrypt.compare(password, user.password, (err, match) => {
-            if (err) {
-                console.error('Bcrypt error:', err);
-                return res.status(401).send('Invalid credentials');
-            }
-            if (!match) {
-                console.log(`Password mismatch for ${email}`);
-                return res.status(401).send('Invalid credentials');
-            }
-            console.log(`Password matched for ${email}`);
-
-            const authToken = crypto.randomBytes(32).toString('hex');
-            db.query('UPDATE users SET auth_token = ? WHERE userid = ?', [authToken, user.userid], (err) => {
-                if (err) {
-                    console.error('Token update error:', err);
-                    return res.status(500).send('Internal Server Error');
-                }
-                res.cookie('authToken', authToken, {
-                    httpOnly: true,
-                    secure: true,
-                    maxAge: 2 * 24 * 60 * 60 * 1000,
-                    sameSite: 'strict'
-                });
-                res.json({ role: user.is_admin ? 'admin' : 'user' });
+            console.log('[BCRYPT DEBUG]', {
+                inputPassword: password,
+                storedHash: user.password,
+                matchResult: match,
+                error: err
             });
+
+            if (err || !match) {
+                console.log('[AUTH FAIL] Password mismatch');
+                return res.status(401).send('Invalid credentials');
+            }
+
+            // Generate auth token
+            const authToken = crypto.randomBytes(32).toString('hex');
+            db.query(
+                'UPDATE users SET auth_token = ? WHERE userid = ?',
+                [authToken, user.userid],
+                (err) => {
+                    if (err) {
+                        console.error('[DB ERROR] Token update failed:', err);
+                        return res.status(500).send('Internal Server Error');
+                    }
+                    console.log('[AUTH SUCCESS] Login successful for:', email);
+                    res.cookie('authToken', authToken, {
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: 'strict',
+                        maxAge: 2 * 24 * 60 * 60 * 1000 // 2 days
+                    });
+                    res.json({ role: user.is_admin ? 'admin' : 'user' });
+                }
+            );
         });
     });
 });
