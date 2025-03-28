@@ -249,12 +249,29 @@ app.post('/login', validateCsrfToken, async (req, res) => {
 app.post('/logout', validateCsrfToken, authenticate, async (req, res) => {
     try {
         await db.query('UPDATE users SET auth_token = NULL WHERE userid = ?', [req.user.userid]);
+        
+        // Generate new CSRF token
+        const newCsrfToken = generateCsrfToken();
+        
+        // Set cookies
+        res.cookie('csrfToken', newCsrfToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict'
+        });
         res.clearCookie('authToken');
-        res.clearCookie('csrfToken');
-        res.redirect('/login.html');
+        
+        // Return JSON response
+        res.json({ 
+            success: true,
+            csrfToken: newCsrfToken // Send new token in response
+        });
     } catch (err) {
         console.error('Logout error:', err);
-        res.status(500).send('Internal Server Error');
+        res.status(500).json({ 
+            error: 'Internal Server Error',
+            details: process.env.NODE_ENV === 'development' ? err.message : null
+        });
     }
 });
 
